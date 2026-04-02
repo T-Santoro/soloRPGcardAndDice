@@ -1,0 +1,3589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#1a0a0a">
+<meta name="description" content="Solo RPG Toolkit — Dice & Cards">
+<title>The Oracle — Solo RPG Toolkit</title>
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Cinzel:wght@400;600&family=IM+Fell+English:ital@0;1&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --obsidian: #0d0608;
+  --deep-crimson: #1e0810;
+  --crimson: #6b1a2a;
+  --blood: #8b2635;
+  --ember: #c4562a;
+  --gold: #c9973a;
+  --pale-gold: #e8c97a;
+  --parchment: #f0e6c8;
+  --pale-parchment: #f8f2e4;
+  --ash: #8a7a7a;
+  --fog: #c4b4b4;
+  --ink: #1a0d0d;
+  --sidebar-w: 280px;
+  --header-h: 56px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  font-family: 'IM Fell English', Georgia, serif;
+  background: var(--obsidian);
+  color: var(--parchment);
+}
+
+/* Noise texture overlay */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.4;
+}
+
+/* ─── LAYOUT ─── */
+#app {
+  display: grid;
+  grid-template-rows: var(--header-h) 1fr;
+  grid-template-columns: 1fr var(--sidebar-w);
+  height: 100vh;
+  max-height: 100vh;
+}
+
+/* ─── HEADER ─── */
+header {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  background: linear-gradient(180deg, #1e0810 0%, #130508 100%);
+  border-bottom: 1px solid var(--crimson);
+  box-shadow: 0 2px 20px rgba(139, 38, 53, 0.3);
+  position: relative;
+  z-index: 10;
+}
+
+header::after {
+  content: '';
+  position: absolute;
+  bottom: -3px;
+  left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+}
+
+.logo {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: 1.1rem;
+  color: var(--pale-gold);
+  letter-spacing: 0.05em;
+  text-shadow: 0 0 20px rgba(201,151,58,0.5);
+}
+
+.logo span { color: var(--blood); }
+
+nav {
+  display: flex;
+  gap: 4px;
+}
+
+.tab-btn {
+  font-family: 'Cinzel', serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  padding: 6px 16px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--ash);
+  cursor: pointer;
+  transition: all 0.25s;
+  text-transform: uppercase;
+}
+
+.tab-btn:hover {
+  color: var(--parchment);
+  border-color: var(--crimson);
+}
+
+.tab-btn.active {
+  color: var(--pale-gold);
+  border-color: var(--gold);
+  background: rgba(201, 151, 58, 0.08);
+  text-shadow: 0 0 10px rgba(201,151,58,0.4);
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.share-btn {
+  font-family: 'Cinzel', serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  padding: 5px 12px;
+  border: 1px solid var(--crimson);
+  background: transparent;
+  color: var(--ember);
+  cursor: pointer;
+  transition: all 0.25s;
+  text-transform: uppercase;
+}
+
+.share-btn:hover {
+  background: rgba(196, 86, 42, 0.15);
+  border-color: var(--ember);
+}
+
+/* ─── MAIN ─── */
+main {
+  overflow: hidden;
+  position: relative;
+  background: radial-gradient(ellipse at 30% 20%, rgba(107,26,42,0.12) 0%, transparent 60%),
+              radial-gradient(ellipse at 80% 80%, rgba(30,8,16,0.8) 0%, var(--obsidian) 100%);
+}
+
+.panel {
+  position: absolute;
+  inset: 0;
+  display: none;
+  overflow-y: auto;
+  padding: 24px;
+}
+
+.panel.active { display: block; }
+
+/* ─── SIDEBAR ─── */
+#sidebar {
+  background: linear-gradient(180deg, #130508 0%, #0d0608 100%);
+  border-left: 1px solid var(--crimson);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.sb-section {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  border-bottom: 1px solid rgba(107, 26, 42, 0.3);
+  overflow: hidden;
+}
+.sb-section:last-child { border-bottom: none; }
+.sb-section .discard-list { flex: 1; overflow-y: auto; max-height: none; }
+
+.sidebar-header {
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(107, 26, 42, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.sidebar-title {
+  font-family: 'Cinzel', serif;
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ash);
+}
+
+.clear-log-btn {
+  font-size: 0.6rem;
+  font-family: 'Cinzel', serif;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--crimson);
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+.clear-log-btn:hover { color: var(--blood); }
+
+#log-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 4px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+#log-list::-webkit-scrollbar { width: 4px; }
+#log-list::-webkit-scrollbar-track { background: transparent; }
+#log-list::-webkit-scrollbar-thumb { background: var(--crimson); border-radius: 2px; }
+
+.log-entry {
+  padding: 8px 16px;
+  border-bottom: 1px solid rgba(107, 26, 42, 0.15);
+  animation: logSlide 0.3s ease;
+}
+
+@keyframes logSlide {
+  from { opacity: 0; transform: translateX(10px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.log-time {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.55rem;
+  color: var(--crimson);
+  margin-bottom: 2px;
+}
+
+.log-desc {
+  font-size: 0.75rem;
+  color: var(--fog);
+  line-height: 1.3;
+}
+
+.log-result {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--pale-gold);
+}
+
+.log-entry.critical .log-result { color: #ff6b6b; }
+.log-entry.max-roll .log-result { color: #7eff7a; }
+.log-entry.card-draw { border-left: 2px solid var(--gold); }
+.log-entry.card-discard { border-left: 2px solid var(--ash); }
+
+/* ─── DICE PANEL ─── */
+.dice-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.die-selector {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 12px;
+  border: 1px solid rgba(107, 26, 42, 0.4);
+  background: rgba(30, 8, 16, 0.5);
+  position: relative;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.die-selector:hover {
+  border-color: var(--crimson);
+  background: rgba(107, 26, 42, 0.2);
+}
+
+.die-selector.selected {
+  border-color: var(--gold);
+  background: rgba(201, 151, 58, 0.08);
+}
+
+.die-selector.selected::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border: 1px solid var(--gold);
+  pointer-events: none;
+  box-shadow: inset 0 0 15px rgba(201, 151, 58, 0.05);
+}
+
+.die-icon {
+  font-size: 2rem;
+  line-height: 1;
+  filter: drop-shadow(0 0 8px currentColor);
+}
+
+.die-label {
+  font-family: 'Cinzel', serif;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  color: var(--pale-gold);
+}
+
+.die-count-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.die-count-btn {
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--crimson);
+  background: transparent;
+  color: var(--parchment);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  line-height: 1;
+  transition: all 0.15s;
+}
+.die-count-btn:hover { background: rgba(107, 26, 42, 0.4); }
+
+.die-count {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85rem;
+  color: var(--pale-gold);
+  min-width: 20px;
+  text-align: center;
+}
+
+/* Modifier row */
+.roll-controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.control-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.control-label {
+  font-family: 'Cinzel', serif;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ash);
+}
+
+.modifier-input {
+  width: 80px;
+  background: rgba(30, 8, 16, 0.8);
+  border: 1px solid var(--crimson);
+  color: var(--pale-gold);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1rem;
+  padding: 6px 10px;
+  text-align: center;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.modifier-input:focus { border-color: var(--gold); }
+
+/* Roll button */
+.roll-btn {
+  position: relative;
+  font-family: 'Cinzel Decorative', serif;
+  font-size: 0.9rem;
+  letter-spacing: 0.08em;
+  padding: 14px 40px;
+  background: linear-gradient(135deg, var(--crimson) 0%, var(--blood) 100%);
+  border: 1px solid var(--blood);
+  color: var(--pale-parchment);
+  cursor: pointer;
+  transition: all 0.2s;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+  overflow: hidden;
+  display: block;
+  margin-bottom: 32px;
+}
+
+.roll-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 50%);
+  transition: opacity 0.2s;
+}
+
+.roll-btn:hover {
+  background: linear-gradient(135deg, #7d1e2f 0%, #a02d3e 100%);
+  box-shadow: 0 0 30px rgba(139, 38, 53, 0.5), 0 0 60px rgba(139, 38, 53, 0.2);
+  transform: translateY(-1px);
+}
+
+.roll-btn:active { transform: translateY(1px); }
+.roll-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+/* Result display */
+#result-display {
+  min-height: 160px;
+  background: rgba(10, 4, 8, 0.8);
+  border: 1px solid rgba(107, 26, 42, 0.4);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+#result-display::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, rgba(107, 26, 42, 0.1) 0%, transparent 70%);
+}
+
+.result-dice-label {
+  font-family: 'Cinzel', serif;
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--ash);
+  margin-bottom: 8px;
+}
+
+.result-total {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: 4rem;
+  color: var(--pale-gold);
+  text-shadow: 0 0 30px rgba(201, 151, 58, 0.6), 0 0 60px rgba(201, 151, 58, 0.2);
+  line-height: 1;
+  transition: all 0.4s;
+}
+
+.result-total.crit { color: #ff6b6b; text-shadow: 0 0 30px rgba(255,107,107,0.6); animation: critFlash 0.5s ease; }
+.result-total.max { color: #7eff7a; text-shadow: 0 0 30px rgba(126,255,122,0.6); animation: critFlash 0.5s ease; }
+
+@keyframes critFlash {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+.result-breakdown {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--ash);
+  margin-top: 8px;
+}
+
+.individual-rolls {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 8px;
+}
+
+.roll-pip {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8rem;
+  padding: 3px 8px;
+  border: 1px solid rgba(107, 26, 42, 0.5);
+  color: var(--fog);
+  animation: pipPop 0.3s ease backwards;
+}
+
+@keyframes pipPop {
+  from { opacity: 0; transform: scale(0.5); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.roll-pip.is-max { border-color: var(--gold); color: var(--pale-gold); }
+.roll-pip.is-min { border-color: var(--crimson); color: var(--blood); }
+
+.empty-result {
+  font-family: 'IM Fell English', serif;
+  font-style: italic;
+  color: rgba(138, 122, 122, 0.4);
+  font-size: 1rem;
+}
+
+/* ─── CARD PANEL ─── */
+.card-panel-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+  height: 100%;
+  max-height: calc(100vh - var(--header-h) - 48px);
+  overflow-y: auto;
+}
+
+.card-main { display: flex; flex-direction: column; gap: 16px; }
+
+/* Deck controls */
+.card-controls-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 12px 16px;
+  background: rgba(30, 8, 16, 0.5);
+  border: 1px solid rgba(107, 26, 42, 0.3);
+}
+
+.deck-select {
+  font-family: 'Cinzel', serif;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  background: rgba(10, 4, 8, 0.9);
+  border: 1px solid var(--crimson);
+  color: var(--pale-gold);
+  padding: 6px 10px;
+  outline: none;
+  cursor: pointer;
+}
+
+.card-action-btn {
+  font-family: 'Cinzel', serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 6px 12px;
+  border: 1px solid var(--crimson);
+  background: transparent;
+  color: var(--parchment);
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.card-action-btn:hover { background: rgba(107, 26, 42, 0.3); }
+.card-action-btn.primary { border-color: var(--gold); color: var(--pale-gold); }
+.card-action-btn.primary:hover { background: rgba(201, 151, 58, 0.15); }
+.card-action-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+/* Current card display */
+.current-card-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+  padding: 24px;
+  background: rgba(10, 4, 8, 0.6);
+  border: 1px solid rgba(107, 26, 42, 0.3);
+  min-height: 240px;
+}
+
+.playing-card {
+  width: 120px;
+  height: 168px;
+  border: 2px solid var(--parchment);
+  background: var(--pale-parchment);
+  color: var(--ink);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+  position: relative;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.5), 0 0 0 1px rgba(201, 151, 58, 0.3);
+  animation: cardDraw 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  flex-shrink: 0;
+}
+
+@keyframes cardDraw {
+  from { opacity: 0; transform: translateY(-20px) rotate(-5deg); }
+  to { opacity: 1; transform: translateY(0) rotate(0); }
+}
+
+.playing-card.red { color: #8b1a1a; }
+.playing-card.black { color: #1a1a1a; }
+.playing-card.joker { 
+  background: linear-gradient(135deg, #f0e6c8 25%, #e8d4a0 50%, #f0e6c8 75%);
+  border-color: var(--gold);
+}
+
+.card-corner {
+  position: absolute;
+  font-size: 0.8rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.card-corner.tl { top: 6px; left: 8px; }
+.card-corner.br { bottom: 6px; right: 8px; transform: rotate(180deg); }
+
+.card-center-symbol { font-size: 2.2rem; }
+
+.card-back {
+  width: 120px;
+  height: 168px;
+  border: 2px solid var(--crimson);
+  background: linear-gradient(135deg, var(--deep-crimson) 0%, #2d0e1a 50%, var(--deep-crimson) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+}
+
+.card-back-pattern {
+  width: 90px;
+  height: 140px;
+  border: 1px solid rgba(107, 26, 42, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: rgba(107, 26, 42, 0.5);
+}
+
+.current-card-info { text-align: center; }
+
+.current-card-name {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: 1.1rem;
+  color: var(--pale-gold);
+  text-shadow: 0 0 15px rgba(201,151,58,0.4);
+  margin-bottom: 4px;
+}
+
+.current-card-sub {
+  font-family: 'IM Fell English', serif;
+  font-style: italic;
+  font-size: 0.8rem;
+  color: var(--ash);
+  margin-bottom: 12px;
+}
+
+.current-card-meaning {
+  font-family: 'IM Fell English', serif;
+  font-size: 0.75rem;
+  color: var(--fog);
+  max-width: 180px;
+  line-height: 1.5;
+  font-style: italic;
+}
+
+/* Deck stacks area */
+.stacks-area {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.stack-card {
+  flex: 1;
+  min-width: 120px;
+  background: rgba(30, 8, 16, 0.5);
+  border: 1px solid rgba(107, 26, 42, 0.4);
+  padding: 12px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.stack-card:hover { border-color: var(--gold); }
+
+.stack-card.draw-source {
+  border-color: var(--gold);
+  background: rgba(201, 151, 58, 0.08);
+}
+
+.stack-name {
+  font-family: 'Cinzel', serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ash);
+  margin-bottom: 6px;
+}
+
+.stack-count {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: 1.5rem;
+  color: var(--pale-gold);
+}
+
+.stack-count-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.6rem;
+  color: var(--ash);
+}
+
+.stack-actions {
+  display: flex;
+  gap: 4px;
+  margin-top: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.stack-actions .card-action-btn {
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: normal;
+  line-height: 1.2;
+  text-align: center;
+}
+
+/* Discard pile */
+.discard-section {
+  background: rgba(10, 4, 8, 0.6);
+  border: 1px solid rgba(107, 26, 42, 0.3);
+  padding: 12px;
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.discard-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.section-title {
+  font-family: 'Cinzel', serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ash);
+}
+
+.discard-list {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  max-height: 200px;
+}
+
+.discard-list::-webkit-scrollbar { width: 3px; }
+.discard-list::-webkit-scrollbar-thumb { background: var(--crimson); }
+
+.discard-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 8px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--fog);
+  border-bottom: 1px solid rgba(107, 26, 42, 0.1);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.discard-item:hover { background: rgba(107, 26, 42, 0.2); }
+.discard-item:first-child { color: var(--pale-gold); }
+
+.discard-item-symbol { font-size: 1rem; margin-right: 6px; }
+
+.take-from-discard {
+  font-size: 0.6rem;
+  color: var(--crimson);
+  cursor: pointer;
+  border: none;
+  background: none;
+  font-family: 'Cinzel', serif;
+  letter-spacing: 0.05em;
+  transition: color 0.15s;
+}
+.take-from-discard:hover { color: var(--gold); }
+
+/* Card log in sidebar */
+.card-log-item {
+  padding: 6px 16px;
+  font-size: 0.72rem;
+  color: var(--fog);
+  border-bottom: 1px solid rgba(107, 26, 42, 0.12);
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+}
+
+.card-log-symbol { font-size: 1rem; line-height: 1; }
+
+/* Split modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  display: none;
+}
+.modal-overlay.open { display: flex; }
+
+.modal {
+  background: var(--deep-crimson);
+  border: 1px solid var(--crimson);
+  padding: 28px;
+  min-width: 320px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+}
+
+.modal-title {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: 0.9rem;
+  color: var(--pale-gold);
+  margin-bottom: 20px;
+}
+
+.modal-body { margin-bottom: 20px; }
+
+.stack-input-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.stack-input {
+  flex: 1;
+  background: rgba(10, 4, 8, 0.8);
+  border: 1px solid var(--crimson);
+  color: var(--pale-gold);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85rem;
+  padding: 6px 10px;
+  outline: none;
+  width: 80px;
+}
+
+.stack-input-label {
+  font-family: 'Cinzel', serif;
+  font-size: 0.65rem;
+  color: var(--ash);
+  letter-spacing: 0.1em;
+}
+
+.modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+
+/* Toast */
+#toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: rgba(107, 26, 42, 0.95);
+  border: 1px solid var(--blood);
+  color: var(--pale-parchment);
+  font-family: 'Cinzel', serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  padding: 10px 20px;
+  opacity: 0;
+  transition: all 0.3s;
+  z-index: 2000;
+  pointer-events: none;
+}
+#toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* Tarot card specifics */
+.tarot-card {
+  width: 100px;
+  height: 168px;
+  background: linear-gradient(160deg, #1a0a14 0%, #0d0608 100%);
+  border: 2px solid var(--gold);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 6px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.5), 0 0 20px rgba(201, 151, 58, 0.15);
+  animation: cardDraw 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  flex-shrink: 0;
+}
+
+.tarot-card.reversed {
+  transform: rotate(180deg);
+  box-shadow: 0 -8px 30px rgba(0,0,0,0.5), 0 0 20px rgba(139, 38, 53, 0.3);
+}
+
+.tarot-number {
+  font-family: 'Cinzel', serif;
+  font-size: 0.6rem;
+  color: var(--gold);
+  letter-spacing: 0.1em;
+  text-align: center;
+}
+
+.tarot-symbol { font-size: 2rem; }
+
+.tarot-name {
+  font-family: 'Cinzel', serif;
+  font-size: 0.45rem;
+  color: var(--pale-gold);
+  letter-spacing: 0.05em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+/* Scrollbar global */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(107, 26, 42, 0.5); border-radius: 2px; }
+
+/* ─── MOBILE LOG OVERLAY ─── */
+#log-overlay {
+  display: none; /* hidden on desktop */
+}
+
+@media (max-width: 640px) {
+  /* ── Layout ── */
+  :root { --sidebar-w: 0px; --log-tab-h: 44px; }
+  #sidebar { display: none; }
+  #app { grid-template-columns: 1fr; }
+
+  /* push panel content above log tab */
+  .panel { padding: 14px 14px calc(var(--log-tab-h) + 10px); }
+
+  /* ── Header compact ── */
+  .logo { font-size: 0.8rem; }
+  .share-btn { font-size: 0.55rem; padding: 4px 8px; letter-spacing: 0.05em; }
+  .tab-btn { font-size: 0.65rem; padding: 5px 10px; letter-spacing: 0.06em; }
+
+  /* ── Dice grid: 4 columns on mobile ── */
+  .dice-grid { grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 14px; }
+  .die-selector { padding: 10px 4px; gap: 5px; }
+  .die-icon { font-size: 1.4rem; }
+  .die-label { font-size: 0.6rem; }
+  .die-count-btn { width: 18px; height: 18px; font-size: 0.75rem; }
+  .die-count { font-size: 0.75rem; }
+  .roll-btn { padding: 12px 24px; font-size: 0.8rem; margin-bottom: 16px; width: 100%; }
+  #result-display { min-height: 120px; padding: 16px; }
+  .result-total { font-size: 3rem; }
+  .roll-controls { gap: 10px; margin-bottom: 14px; }
+
+  /* ── Card panel: single column ── */
+  .card-panel-grid { grid-template-columns: 1fr; gap: 10px; max-height: none; }
+  .card-sidebar-col { display: none; }
+
+  /* ── Card controls: wrap tightly ── */
+  .card-controls-bar { gap: 5px; padding: 8px 10px; }
+  .card-action-btn { font-size: 0.58rem; padding: 5px 8px; letter-spacing: 0.06em; }
+  .deck-select { font-size: 0.62rem; padding: 5px 6px; }
+
+  /* ── Current card display: column layout, no card-back ── */
+  .current-card-wrap {
+    flex-direction: column;
+    gap: 14px;
+    padding: 16px 12px;
+    min-height: 0;
+  }
+  /* Hide the decorative card back on mobile to save space */
+  .current-card-wrap .card-back { display: none; }
+  /* Scale down cards */
+  .playing-card { width: 90px; height: 126px; font-size: 1.8rem; }
+  .card-corner { font-size: 0.65rem; }
+  .card-center-symbol { font-size: 1.6rem; }
+  .tarot-card { width: 80px; height: 126px; }
+  .tarot-symbol { font-size: 1.5rem; }
+  .tarot-name { font-size: 0.4rem; }
+  .current-card-name { font-size: 0.85rem; }
+  .current-card-sub { font-size: 0.7rem; margin-bottom: 6px; }
+  .current-card-meaning { font-size: 0.7rem; max-width: 240px; }
+
+  /* ── Stacks ── */
+  .stacks-area { gap: 8px; }
+  .stack-card { min-width: 90px; padding: 8px; }
+  .stack-count { font-size: 1.2rem; }
+
+  /* ── Log overlay tab (floating) ── */
+  #log-overlay { display: block; }
+}
+
+@media (min-width: 641px) and (max-width: 900px) {
+  :root { --sidebar-w: 0px; --log-tab-h: 44px; }
+  #app { grid-template-columns: 1fr; }
+  #sidebar { display: none; }
+  #log-overlay { display: block; }
+  .panel { padding: 14px 14px calc(var(--log-tab-h) + 10px); }
+}
+
+/* ── Log overlay structure (only visible on mobile) ── */
+#log-overlay {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 500;
+  pointer-events: none;
+}
+
+#log-tab {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 160px;
+  height: var(--log-tab-h, 44px);
+  background: linear-gradient(180deg, #2a0e18 0%, #1e0810 100%);
+  border: 1px solid var(--crimson);
+  border-bottom: none;
+  border-radius: 8px 8px 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  pointer-events: all;
+  transition: background 0.2s;
+  box-shadow: 0 -4px 20px rgba(107,26,42,0.3);
+}
+
+#log-tab:hover { background: linear-gradient(180deg, #3a1422 0%, #2a0e18 100%); }
+
+#log-tab-label {
+  font-family: 'Cinzel', serif;
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--pale-gold);
+}
+
+#log-tab-count {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--blood);
+  background: rgba(107,26,42,0.3);
+  border: 1px solid rgba(107,26,42,0.5);
+  border-radius: 10px;
+  padding: 0px 6px;
+  min-width: 20px;
+  text-align: center;
+}
+
+#log-tab-chevron {
+  font-size: 0.7rem;
+  color: var(--ash);
+  transition: transform 0.3s;
+}
+
+/* ── Log drawer (slides up) ── */
+#log-drawer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 70vh;
+  background: linear-gradient(180deg, #1a080f 0%, #0d0608 100%);
+  border-top: 1px solid var(--crimson);
+  border-left: 1px solid rgba(107,26,42,0.4);
+  border-right: 1px solid rgba(107,26,42,0.4);
+  z-index: 490;
+  transform: translateY(100%);
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  pointer-events: all;
+  box-shadow: 0 -10px 40px rgba(0,0,0,0.7);
+}
+
+#log-drawer.open { transform: translateY(0); }
+
+#log-drawer-handle {
+  width: 40px;
+  height: 3px;
+  background: var(--crimson);
+  border-radius: 2px;
+  margin: 10px auto 0;
+  flex-shrink: 0;
+}
+
+#log-drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px 8px;
+  border-bottom: 1px solid rgba(107,26,42,0.35);
+  flex-shrink: 0;
+}
+
+.drawer-title {
+  font-family: 'Cinzel', serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--ash);
+}
+
+.drawer-tabs {
+  display: flex;
+  gap: 4px;
+}
+
+.drawer-tab-btn {
+  font-family: 'Cinzel', serif;
+  font-size: 0.58rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--ash);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.drawer-tab-btn.active {
+  border-color: var(--gold);
+  color: var(--pale-gold);
+  background: rgba(201,151,58,0.08);
+}
+
+#log-drawer-close {
+  background: none;
+  border: none;
+  color: var(--crimson);
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 0 4px;
+  line-height: 1;
+  transition: color 0.2s;
+}
+#log-drawer-close:hover { color: var(--blood); }
+
+#log-drawer-body {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Drawer discard/log panes */
+.drawer-pane { display: none; flex: 1; flex-direction: column; overflow-y: auto; }
+.drawer-pane.active { display: flex; }
+
+/* Drawer discard actions bar */
+.drawer-discard-actions {
+  display: flex;
+  gap: 6px;
+  padding: 8px 12px;
+  border-bottom: 1px solid rgba(107,26,42,0.2);
+  flex-shrink: 0;
+}
+
+/* Backdrop */
+#log-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  z-index: 480;
+  display: none;
+  pointer-events: all;
+}
+#log-backdrop.open { display: block; }
+
+/* ─── DECK CUSTOMIZER MODAL ─── */
+.customize-modal {
+  background: var(--deep-crimson);
+  border: 1px solid var(--crimson);
+  padding: 0;
+  width: min(680px, 96vw);
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+}
+
+.customize-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 24px 14px;
+  border-bottom: 1px solid rgba(107,26,42,0.5);
+  flex-shrink: 0;
+}
+
+.customize-modal-header::after {
+  display: none;
+}
+
+.customize-modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 24px;
+}
+
+.customize-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 24px;
+  border-top: 1px solid rgba(107,26,42,0.5);
+  flex-shrink: 0;
+}
+
+.customize-type-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 20px;
+}
+
+.customize-type-tab {
+  font-family: 'Cinzel', serif;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 7px 18px;
+  border: 1px solid var(--crimson);
+  background: transparent;
+  color: var(--ash);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.customize-type-tab.active {
+  border-color: var(--gold);
+  color: var(--pale-gold);
+  background: rgba(201,151,58,0.08);
+}
+
+.customize-section {
+  margin-bottom: 18px;
+}
+
+.customize-section-title {
+  font-family: 'Cinzel', serif;
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ash);
+  margin-bottom: 8px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid rgba(107,26,42,0.25);
+}
+
+.toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.toggle-chip {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  padding: 4px 10px;
+  border: 1px solid rgba(107,26,42,0.5);
+  background: transparent;
+  color: var(--fog);
+  cursor: pointer;
+  transition: all 0.15s;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.toggle-chip:hover { border-color: var(--crimson); color: var(--parchment); }
+.toggle-chip.on { border-color: var(--gold); color: var(--pale-gold); background: rgba(201,151,58,0.1); }
+.toggle-chip.red-chip.on { border-color: #c45; color: #e87; background: rgba(200,68,85,0.1); }
+
+.chip-group-actions {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.chip-group-btn {
+  font-family: 'Cinzel', serif;
+  font-size: 0.58rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 3px 9px;
+  border: 1px solid rgba(107,26,42,0.4);
+  background: transparent;
+  color: var(--ash);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.chip-group-btn:hover { border-color: var(--crimson); color: var(--fog); }
+
+.customize-count-badge {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem;
+  color: var(--pale-gold);
+  background: rgba(201,151,58,0.1);
+  border: 1px solid rgba(201,151,58,0.3);
+  padding: 2px 10px;
+  border-radius: 20px;
+}
+
+/* Stack close button */
+.stack-close-btn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 18px;
+  height: 18px;
+  border: 1px solid rgba(107,26,42,0.5);
+  background: transparent;
+  color: var(--crimson);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  line-height: 1;
+  transition: all 0.15s;
+  border-radius: 2px;
+}
+.stack-close-btn:hover { background: rgba(107,26,42,0.4); color: var(--parchment); border-color: var(--blood); }
+
+/* New deck action modal */
+.new-deck-choice-modal {
+  background: var(--deep-crimson);
+  border: 1px solid var(--crimson);
+  padding: 24px;
+  min-width: 280px;
+  max-width: 380px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+}
+
+.new-deck-choice-title {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: 0.85rem;
+  color: var(--pale-gold);
+  margin-bottom: 6px;
+}
+
+.new-deck-choice-sub {
+  font-family: 'IM Fell English', serif;
+  font-style: italic;
+  font-size: 0.75rem;
+  color: var(--ash);
+  margin-bottom: 18px;
+}
+
+.new-deck-choice-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.new-deck-choice-btn {
+  font-family: 'Cinzel', serif;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 10px 16px;
+  border: 1px solid var(--crimson);
+  background: rgba(30,8,16,0.5);
+  color: var(--parchment);
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s;
+}
+.new-deck-choice-btn:hover { background: rgba(107,26,42,0.3); border-color: var(--blood); }
+.new-deck-choice-btn .btn-sub {
+  display: block;
+  font-family: 'IM Fell English', serif;
+  font-style: italic;
+  font-size: 0.68rem;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--ash);
+  margin-top: 2px;
+}
+
+.stack-name-input {
+  width: 100%;
+  background: rgba(10,4,8,0.8);
+  border: 1px solid var(--crimson);
+  color: var(--pale-gold);
+  font-family: 'Cinzel', serif;
+  font-size: 0.8rem;
+  padding: 7px 10px;
+  outline: none;
+  margin-bottom: 12px;
+  letter-spacing: 0.05em;
+}
+.stack-name-input:focus { border-color: var(--gold); }
+.stack-name-input::placeholder { color: var(--ash); font-style: italic; }
+
+/* ─── SAVES MODAL ─── */
+.saves-modal {
+  background: var(--deep-crimson);
+  border: 1px solid var(--crimson);
+  padding: 0;
+  width: min(520px, 96vw);
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+}
+
+.saves-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px 12px;
+  border-bottom: 1px solid rgba(107,26,42,0.5);
+  flex-shrink: 0;
+}
+
+.saves-modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.saves-new-row {
+  display: flex;
+  gap: 8px;
+  padding: 12px 16px;
+  background: rgba(10,4,8,0.5);
+  border: 1px solid rgba(107,26,42,0.3);
+  flex-shrink: 0;
+}
+
+.saves-name-input {
+  flex: 1;
+  background: rgba(10,4,8,0.8);
+  border: 1px solid var(--crimson);
+  color: var(--pale-gold);
+  font-family: 'Cinzel', serif;
+  font-size: 0.78rem;
+  padding: 7px 10px;
+  outline: none;
+  letter-spacing: 0.04em;
+  min-width: 0;
+}
+.saves-name-input:focus { border-color: var(--gold); }
+.saves-name-input::placeholder { color: var(--ash); font-style: italic; font-family: 'IM Fell English', serif; letter-spacing: 0; }
+
+.save-entry {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: rgba(30,8,16,0.5);
+  border: 1px solid rgba(107,26,42,0.35);
+  transition: border-color 0.2s;
+  animation: logSlide 0.25s ease;
+}
+.save-entry:hover { border-color: rgba(107,26,42,0.7); }
+
+.save-entry-info { flex: 1; min-width: 0; }
+
+.save-entry-name {
+  font-family: 'Cinzel', serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  color: var(--pale-gold);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.save-entry-meta {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.6rem;
+  color: var(--ash);
+  margin-top: 2px;
+}
+
+.save-entry-actions {
+  display: flex;
+  gap: 5px;
+  flex-shrink: 0;
+}
+
+.save-load-btn {
+  font-family: 'Cinzel', serif;
+  font-size: 0.58rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border: 1px solid var(--gold);
+  background: rgba(201,151,58,0.08);
+  color: var(--pale-gold);
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.save-load-btn:hover { background: rgba(201,151,58,0.2); }
+
+.save-delete-btn {
+  font-family: 'Cinzel', serif;
+  font-size: 0.58rem;
+  padding: 4px 8px;
+  border: 1px solid rgba(107,26,42,0.5);
+  background: transparent;
+  color: var(--crimson);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.save-delete-btn:hover { border-color: var(--blood); color: var(--blood); background: rgba(107,26,42,0.2); }
+
+.saves-empty {
+  font-family: 'IM Fell English', serif;
+  font-style: italic;
+  color: rgba(138,122,122,0.45);
+  font-size: 0.9rem;
+  text-align: center;
+  padding: 24px 0;
+}
+
+.save-section-title {
+  font-family: 'Cinzel', serif;
+  font-size: 0.58rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--crimson);
+  margin-bottom: 4px;
+  margin-top: 4px;
+}
+
+/* ─── PENCIL RENAME ─── */
+.rename-btn {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  width: 18px;
+  height: 18px;
+  border: none;
+  background: transparent;
+  color: var(--ash);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  line-height: 1;
+  opacity: 0.5;
+  transition: opacity 0.15s, color 0.15s;
+  padding: 0;
+}
+.rename-btn:hover { opacity: 1; color: var(--pale-gold); }
+
+/* ─── DICE POOL TILES ─── */
+.pool-tile {
+  flex: 1;
+  min-width: 110px;
+  background: rgba(30, 8, 16, 0.5);
+  border: 1px solid rgba(107, 26, 42, 0.4);
+  padding: 10px 10px 10px 10px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+.pool-tile:hover { border-color: var(--gold); }
+.pool-tile.active-pool {
+  border-color: var(--gold);
+  background: rgba(201, 151, 58, 0.08);
+}
+.pool-name {
+  font-family: 'Cinzel', serif;
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ash);
+  margin-bottom: 4px;
+  padding: 0 18px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pool-expr {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.78rem;
+  color: var(--pale-gold);
+  margin-bottom: 4px;
+}
+.pool-actions {
+  display: flex;
+  gap: 4px;
+  margin-top: 6px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.pool-actions .card-action-btn {
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: normal;
+  line-height: 1.2;
+  text-align: center;
+}
+
+/* ─── RENAME MODAL ─── */
+.rename-modal {
+  background: var(--deep-crimson);
+  border: 1px solid var(--crimson);
+  padding: 24px;
+  min-width: 280px;
+  max-width: 380px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+}
+.rename-modal-title {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: 0.85rem;
+  color: var(--pale-gold);
+  margin-bottom: 14px;
+}
+.rename-input {
+  width: 100%;
+  background: rgba(10,4,8,0.8);
+  border: 1px solid var(--crimson);
+  color: var(--pale-gold);
+  font-family: 'Cinzel', serif;
+  font-size: 0.82rem;
+  padding: 8px 12px;
+  outline: none;
+  margin-bottom: 14px;
+  letter-spacing: 0.04em;
+}
+.rename-input:focus { border-color: var(--gold); }
+
+/* Divider */
+.divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--crimson), transparent);
+  margin: 16px 0;
+  opacity: 0.4;
+}
+
+.section-heading {
+  font-family: 'Cinzel', serif;
+  font-size: 0.65rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--ash);
+  margin-bottom: 12px;
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="logo">The <span>Oracle</span></div>
+    <nav>
+      <button class="tab-btn active" data-tab="dice">⚄ Dice</button>
+      <button class="tab-btn" data-tab="cards">🃏 Cards</button>
+    </nav>
+    <div class="header-right">
+      <button class="share-btn" id="saves-btn">📜 Saves</button>
+      <button class="share-btn" id="share-btn">⛓ Share State</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- DICE PANEL -->
+    <div class="panel active" id="panel-dice">
+      <div class="section-heading">Select Dice</div>
+      <div class="dice-grid" id="dice-grid">
+        <!-- populated by JS -->
+      </div>
+
+      <div class="roll-controls">
+        <div class="control-group">
+          <span class="control-label">Modifier</span>
+          <input type="number" class="modifier-input" id="modifier-input" value="0" step="1">
+        </div>
+        <div class="control-group">
+          <span class="control-label" id="roll-summary-label" style="color: var(--fog); font-size: 0.75rem; font-style: italic;">No dice selected</span>
+        </div>
+        <div class="control-group" style="margin-left:auto; display:flex; gap:6px;">
+          <button class="card-action-btn" id="clear-dice-btn" style="font-size:0.62rem; padding:5px 10px;" disabled>Clear</button>
+          <button class="card-action-btn" id="save-pool-btn" style="font-size:0.62rem; padding:5px 10px;" disabled>Save Pool</button>
+        </div>
+      </div>
+
+      <button class="roll-btn" id="roll-btn" disabled>Cast the Dice</button>
+
+      <div id="result-display">
+        <p class="empty-result">The dice await your command…</p>
+      </div>
+
+      <div id="dice-pools-wrap" style="display:none;">
+        <div class="divider"></div>
+        <div class="section-heading">Saved Pools</div>
+        <div class="stacks-area" id="dice-pools-area"></div>
+      </div>
+    </div>
+
+    <!-- CARDS PANEL -->
+    <div class="panel" id="panel-cards">
+      <div class="card-panel-grid">
+        <div class="card-main">
+          <div class="card-controls-bar">
+            <select class="deck-select" id="deck-type-select">
+              <option value="standard">Standard 54 (52 + Jokers)</option>
+              <option value="tarot">Tarot (78 cards)</option>
+            </select>
+            <button class="card-action-btn primary" id="new-deck-btn">New Deck</button>
+            <button class="card-action-btn" id="customize-deck-btn">✦ Customize</button>
+            <button class="card-action-btn" id="draw-btn">Draw Card</button>
+            <button class="card-action-btn" id="split-btn">Split Deck</button>
+            <button class="card-action-btn" id="shuffle-btn">Reshuffle All</button>
+          </div>
+
+          <div class="current-card-wrap" id="current-card-wrap">
+            <div style="text-align:center; color: var(--ash); font-style: italic; font-size: 0.85rem;">No card drawn yet.<br><small>Begin a new deck and draw.</small></div>
+          </div>
+
+          <div class="section-heading">Deck Stacks</div>
+          <div class="stacks-area" id="stacks-area">
+            <!-- stacks rendered by JS -->
+          </div>
+        </div>
+
+
+      </div>
+    </div>
+  </main>
+
+  <div id="sidebar">
+    <!-- DICE TAB ORDER: Roll Log → Discard → Draw History -->
+    <!-- CARD TAB ORDER: Discard → Draw History → Roll Log -->
+    <!-- Reordered by JS on tab switch -->
+
+    <div id="sb-roll-log" class="sb-section">
+      <div class="sidebar-header">
+        <span class="sidebar-title">Roll Log</span>
+        <button class="clear-log-btn" id="clear-dice-log-btn">Clear</button>
+      </div>
+      <div id="log-list">
+        <div style="padding:20px 16px; color:var(--crimson); font-style:italic; font-size:0.75rem; text-align:center;">Your rolls will appear here…</div>
+      </div>
+    </div>
+
+    <div id="sb-discard" class="sb-section">
+      <div class="sidebar-header">
+        <span class="sidebar-title">Discard Pile</span>
+        <div style="display:flex; gap:5px; align-items:center;">
+          <button class="card-action-btn" id="draw-discard-top-btn" style="font-size:0.55rem; padding:3px 7px;">Draw Top</button>
+          <button class="card-action-btn" id="reshuffle-discard-btn" style="font-size:0.55rem; padding:3px 7px;">Reshuffle</button>
+        </div>
+      </div>
+      <div class="discard-list" id="discard-list">
+        <div style="color:var(--crimson); font-size:0.7rem; font-style:italic; padding:8px; text-align:center;">Empty</div>
+      </div>
+    </div>
+
+    <div id="sb-draw-history" class="sb-section">
+      <div class="sidebar-header">
+        <span class="sidebar-title">Draw History</span>
+        <button class="clear-log-btn" id="clear-card-log-btn">Clear</button>
+      </div>
+      <div class="discard-list" id="card-log-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Mobile log backdrop -->
+<div id="log-backdrop"></div>
+
+<!-- Mobile log drawer -->
+<div id="log-drawer">
+  <div id="log-drawer-handle"></div>
+  <div id="log-drawer-header">
+    <div class="drawer-tabs">
+      <button class="drawer-tab-btn active" data-drawer-tab="dice-log">⚄ Rolls</button>
+      <button class="drawer-tab-btn" data-drawer-tab="card-log-m">🃏 Cards</button>
+      <button class="drawer-tab-btn" data-drawer-tab="discard-m">♠ Discard</button>
+    </div>
+    <button id="log-drawer-close">✕</button>
+  </div>
+  <div id="log-drawer-body">
+    <!-- Dice log pane -->
+    <div class="drawer-pane active" id="drawer-dice-log">
+      <div style="display:flex; justify-content:flex-end; padding:6px 12px; border-bottom:1px solid rgba(107,26,42,0.2);">
+        <button class="clear-log-btn" id="clear-dice-log-drawer-btn">Clear</button>
+      </div>
+      <div id="drawer-log-list" style="flex:1; overflow-y:auto; padding:4px 0;"></div>
+    </div>
+    <!-- Card log pane -->
+    <div class="drawer-pane" id="drawer-card-log-m">
+      <div style="display:flex; justify-content:flex-end; padding:6px 12px; border-bottom:1px solid rgba(107,26,42,0.2);">
+        <button class="clear-log-btn" id="clear-card-log-drawer-btn">Clear</button>
+      </div>
+      <div id="drawer-card-log-list" style="flex:1; overflow-y:auto;"></div>
+    </div>
+    <!-- Discard pane -->
+    <div class="drawer-pane" id="drawer-discard-m">
+      <div class="drawer-discard-actions">
+        <button class="card-action-btn" id="draw-discard-top-drawer-btn">Draw Top</button>
+        <button class="card-action-btn" id="reshuffle-discard-drawer-btn">Reshuffle Into Deck</button>
+      </div>
+      <div id="drawer-discard-list" style="flex:1; overflow-y:auto;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Mobile log tab (floating) -->
+<div id="log-overlay">
+  <div id="log-tab">
+    <span id="log-tab-chevron">▲</span>
+    <span id="log-tab-label">Log</span>
+    <span id="log-tab-count">0</span>
+  </div>
+</div>
+<!-- Reshuffle Modal -->
+<div class="modal-overlay" id="reshuffle-modal">
+  <div class="new-deck-choice-modal">
+    <div class="new-deck-choice-title">Reshuffle</div>
+    <div class="new-deck-choice-sub" id="reshuffle-modal-desc"></div>
+
+    <div id="reshuffle-current-card-row" style="display:none; margin-bottom:14px;">
+      <label style="font-family:'Cinzel',serif; font-size:0.62rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--ash); display:block; margin-bottom:6px;">Current card in hand</label>
+      <div style="display:flex; gap:6px; flex-wrap:wrap;">
+        <button class="new-deck-choice-btn" id="reshuffle-keep-hand" style="padding:7px 12px; font-size:0.62rem;">
+          Keep in hand
+          <span class="btn-sub">Leave the current card drawn</span>
+        </button>
+        <button class="new-deck-choice-btn" id="reshuffle-discard-first" style="padding:7px 12px; font-size:0.62rem;">
+          Discard it first
+          <span class="btn-sub">Move to discard, then reshuffle pile</span>
+        </button>
+      </div>
+    </div>
+
+    <div id="reshuffle-target-row" style="margin-bottom:14px;">
+      <label style="font-family:'Cinzel',serif; font-size:0.62rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--ash); display:block; margin-bottom:6px;">Shuffle into</label>
+      <select id="reshuffle-target-select" class="deck-select" style="width:100%; display:block;">
+      </select>
+    </div>
+
+    <div style="display:flex; justify-content:flex-end; gap:8px;">
+      <button class="card-action-btn" id="reshuffle-cancel">Cancel</button>
+      <button class="card-action-btn primary" id="reshuffle-confirm">Reshuffle</button>
+    </div>
+  </div>
+</div>
+
+<!-- Rename Modal -->
+<div class="modal-overlay" id="rename-modal">
+  <div class="rename-modal">
+    <div class="rename-modal-title">Rename</div>
+    <input type="text" class="rename-input" id="rename-input" placeholder="Enter new name…">
+    <div style="display:flex; gap:8px; justify-content:flex-end;">
+      <button class="card-action-btn" id="rename-cancel">Cancel</button>
+      <button class="card-action-btn primary" id="rename-confirm">Rename</button>
+    </div>
+  </div>
+</div>
+
+<!-- Saves Modal -->
+<div class="modal-overlay" id="saves-modal">
+  <div class="saves-modal">
+    <div class="saves-modal-header">
+      <div class="modal-title" style="margin:0;">📜 Saved States</div>
+      <button class="card-action-btn" id="saves-close" style="padding:4px 10px;">✕</button>
+    </div>
+    <div class="saves-new-row">
+      <input type="text" class="saves-name-input" id="saves-name-input" placeholder="Name this save… e.g. 'Mid-dungeon session'">
+      <button class="card-action-btn primary" id="saves-save-btn">Save Current</button>
+    </div>
+    <div class="saves-modal-body" id="saves-list">
+      <!-- populated by JS -->
+    </div>
+  </div>
+</div>
+
+<!-- New Deck Action Modal -->
+<div class="modal-overlay" id="new-deck-action-modal">
+  <div class="new-deck-choice-modal">
+    <div class="new-deck-choice-title">Add to Play?</div>
+    <div class="new-deck-choice-sub" id="new-deck-action-desc">Ready to deal a new deck.</div>
+    <label style="font-family:'Cinzel',serif; font-size:0.62rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--ash); display:block; margin-bottom:5px;">Stack Name</label>
+    <input type="text" class="stack-name-input" id="new-stack-name-input" placeholder="e.g. Hearts & Diamonds, Major Arcana…">
+    <div class="new-deck-choice-options">
+      <button class="new-deck-choice-btn" id="ndaction-replace">
+        Replace All Stacks
+        <span class="btn-sub">Clear the table and start fresh with this deck</span>
+      </button>
+      <button class="new-deck-choice-btn" id="ndaction-add">
+        Add as New Stack
+        <span class="btn-sub">Keep existing stacks and add this alongside them</span>
+      </button>
+    </div>
+    <div style="display:flex; justify-content:flex-end;">
+      <button class="card-action-btn" id="ndaction-cancel">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Deck Customizer Modal -->
+<div class="modal-overlay" id="customize-modal">
+  <div class="customize-modal">
+    <div class="customize-modal-header">
+      <div class="modal-title" style="margin:0;">Customize Deck</div>
+      <div style="display:flex; align-items:center; gap:10px;">
+        <span class="customize-count-badge" id="customize-count">0 cards</span>
+        <button class="card-action-btn" id="customize-close" style="padding:4px 10px;">✕</button>
+      </div>
+    </div>
+    <div class="customize-modal-body" id="customize-body">
+      <!-- built by JS -->
+    </div>
+    <div class="customize-modal-footer">
+      <button class="card-action-btn" id="customize-reset">Reset All</button>
+      <div style="display:flex; gap:8px;">
+        <button class="card-action-btn" id="customize-cancel">Cancel</button>
+        <button class="card-action-btn primary" id="customize-confirm">Build Deck →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="split-modal">
+  <div class="modal">
+    <div class="modal-title">Split the Deck</div>
+    <div class="modal-body">
+      <p id="split-source-label" style="font-size:0.78rem; color:var(--pale-gold); margin-bottom:10px; font-family:'Cinzel',serif; letter-spacing:0.05em;"></p>
+      <p style="font-size:0.8rem; color: var(--fog); margin-bottom:12px; font-style:italic;">Every card must be assigned to a stack. The numbers must add up exactly.</p>
+      <div id="split-inputs"></div>
+      <button class="card-action-btn" id="add-split-stack" style="margin-top:8px; font-size:0.6rem;">+ Add Stack</button>
+      <div id="split-tally" style="margin-top:14px; padding:8px 12px; background:rgba(10,4,8,0.6); border:1px solid rgba(107,26,42,0.4); font-family:'JetBrains Mono',monospace; font-size:0.78rem; display:flex; justify-content:space-between; align-items:center;">
+        <span style="color:var(--ash);">Assigned</span>
+        <span id="split-tally-nums" style="color:var(--pale-gold);">0 / 0</span>
+        <span id="split-tally-status" style="font-size:0.65rem;"></span>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="card-action-btn" id="split-cancel">Cancel</button>
+      <button class="card-action-btn primary" id="split-confirm" disabled style="opacity:0.4;">Split</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+//  DICE ENGINE
+// ═══════════════════════════════════════════════════════════
+
+const DICE = [
+  { sides: 20, icon: '🎲', symbol: 'D20', color: '#c4562a' },
+  { sides: 12, icon: '🔷', symbol: 'D12', color: '#8b2635' },
+  { sides: 10, icon: '🔶', symbol: 'D10', color: '#6b1a2a' },
+  { sides: 8,  icon: '💠', symbol: 'D8',  color: '#5a4a1a' },
+  { sides: 6,  icon: '⚅',  symbol: 'D6',  color: '#3a5a1a' },
+  { sides: 4,  icon: '🔺', symbol: 'D4',  color: '#1a3a5a' },
+  { sides: 100, icon: '💯', symbol: 'D100', color: '#4a1a5a' },
+];
+
+const diceState = {};
+DICE.forEach(d => diceState[d.sides] = 0);
+
+let diceLog = [];
+let rollCount = 0;
+
+function buildDiceGrid() {
+  const grid = document.getElementById('dice-grid');
+  grid.innerHTML = '';
+  DICE.forEach(d => {
+    const el = document.createElement('div');
+    el.className = 'die-selector';
+    el.dataset.sides = d.sides;
+    el.innerHTML = `
+      <div class="die-icon" style="color:${d.color}">${d.icon}</div>
+      <div class="die-label">${d.symbol}</div>
+      <div class="die-count-wrap">
+        <button class="die-count-btn" data-action="dec" data-sides="${d.sides}">−</button>
+        <span class="die-count" id="count-${d.sides}">0</span>
+        <button class="die-count-btn" data-action="inc" data-sides="${d.sides}">+</button>
+      </div>
+    `;
+    grid.appendChild(el);
+  });
+
+  grid.addEventListener('click', e => {
+    const btn = e.target.closest('.die-count-btn');
+    if (!btn) return;
+    const sides = +btn.dataset.sides;
+    if (btn.dataset.action === 'inc') diceState[sides]++;
+    else if (btn.dataset.action === 'dec') diceState[sides] = Math.max(0, diceState[sides] - 1);
+    document.getElementById(`count-${sides}`).textContent = diceState[sides];
+    const selector = document.querySelector(`.die-selector[data-sides="${sides}"]`);
+    selector.classList.toggle('selected', diceState[sides] > 0);
+    updateRollSummary();
+  });
+}
+
+function updateRollSummary() {
+  const parts = [];
+  DICE.forEach(d => {
+    if (diceState[d.sides] > 0) parts.push(`${diceState[d.sides]}${d.symbol}`);
+  });
+  const mod = +document.getElementById('modifier-input').value || 0;
+  const modStr = mod !== 0 ? (mod > 0 ? ` +${mod}` : ` ${mod}`) : '';
+  const label = document.getElementById('roll-summary-label');
+  const btn = document.getElementById('roll-btn');
+  const clearBtn = document.getElementById('clear-dice-btn');
+  const savePoolBtn = document.getElementById('save-pool-btn');
+  const hasSelection = parts.length > 0;
+  if (!hasSelection) {
+    label.textContent = 'No dice selected';
+    btn.disabled = true;
+    if (clearBtn) clearBtn.disabled = true;
+    if (savePoolBtn) savePoolBtn.disabled = true;
+  } else {
+    label.textContent = parts.join(' + ') + modStr;
+    btn.disabled = false;
+    if (clearBtn) clearBtn.disabled = false;
+    if (savePoolBtn) savePoolBtn.disabled = false;
+  }
+}
+
+function roll(sides) {
+  return Math.floor(Math.random() * sides) + 1;
+}
+
+function doRoll() {
+  const results = {};
+  const allRolls = [];
+  let total = 0;
+  let maxPossible = 0;
+  let minPossible = 0;
+
+  DICE.forEach(d => {
+    const count = diceState[d.sides];
+    if (count === 0) return;
+    results[d.sides] = [];
+    for (let i = 0; i < count; i++) {
+      const r = roll(d.sides);
+      results[d.sides].push(r);
+      allRolls.push({ r, sides: d.sides, symbol: d.symbol });
+      total += r;
+      maxPossible += d.sides;
+      minPossible += 1;
+    }
+  });
+
+  const mod = +document.getElementById('modifier-input').value || 0;
+  const grandTotal = total + mod;
+
+  const isCrit = allRolls.length === 1 && allRolls[0].r === 1;
+  const isMax = allRolls.length === 1 && allRolls[0].r === allRolls[0].sides;
+
+  // Render result
+  const display = document.getElementById('result-display');
+  const label = document.getElementById('roll-summary-label').textContent;
+  const modStr = mod !== 0 ? (mod > 0 ? ` + ${mod} mod` : ` ${mod} mod`) : '';
+
+  const pipsHtml = allRolls.map((item, idx) => {
+    const isMax_ = item.r === item.sides;
+    const isMin_ = item.r === 1;
+    return `<span class="roll-pip ${isMax_ ? 'is-max' : ''} ${isMin_ ? 'is-min' : ''}" style="animation-delay:${idx*0.05}s" title="${item.symbol}">${item.r}</span>`;
+  }).join('');
+
+  display.innerHTML = `
+    <div class="result-dice-label">${label}</div>
+    <div class="result-total ${isCrit ? 'crit' : ''} ${isMax ? 'max' : ''}">${grandTotal}</div>
+    <div class="individual-rolls">${pipsHtml}</div>
+    ${mod !== 0 ? `<div class="result-breakdown">Dice total: ${total}${modStr}</div>` : ''}
+  `;
+
+  // Log entry
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  const entry = {
+    id: ++rollCount,
+    time: timeStr,
+    desc: label,
+    total: grandTotal,
+    rolls: allRolls,
+    isCrit,
+    isMax,
+  };
+  diceLog.unshift(entry);
+  renderDiceLog();
+  saveState();
+}
+
+function renderDiceLog() {
+  const list = document.getElementById('log-list');
+  if (diceLog.length === 0) {
+    list.innerHTML = '<div style="padding:20px 16px; color:var(--crimson); font-style:italic; font-size:0.75rem; text-align:center;">Your rolls will appear here…</div>';
+    return;
+  }
+  list.innerHTML = diceLog.slice(0, 80).map(e => `
+    <div class="log-entry ${e.isCrit ? 'critical' : ''} ${e.isMax ? 'max-roll' : ''}">
+      <div class="log-time">${e.time}</div>
+      <div class="log-desc">${e.desc}</div>
+      <div class="log-result">${e.total}</div>
+    </div>
+  `).join('');
+}
+
+// ═══════════════════════════════════════════════════════════
+//  CARD ENGINE
+// ═══════════════════════════════════════════════════════════
+
+const SUITS = ['♠','♥','♦','♣'];
+const SUIT_NAMES = ['Spades','Hearts','Diamonds','Clubs'];
+const RED_SUITS = new Set(['♥','♦']);
+const VALUES = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+const VALUE_NAMES = { A:'Ace', J:'Jack', Q:'Queen', K:'King' };
+
+// Tarot deck (Major + Minor Arcana)
+const MAJOR_ARCANA = [
+  { num: 0, name: 'The Fool', sym: '🃏', meaning: 'New beginnings, innocence, spontaneity' },
+  { num: 1, name: 'The Magician', sym: '🔮', meaning: 'Willpower, desire, manifestation' },
+  { num: 2, name: 'The High Priestess', sym: '🌙', meaning: 'Intuition, mystery, the subconscious' },
+  { num: 3, name: 'The Empress', sym: '🌿', meaning: 'Femininity, beauty, nature, abundance' },
+  { num: 4, name: 'The Emperor', sym: '👑', meaning: 'Authority, structure, control, fatherhood' },
+  { num: 5, name: 'The Hierophant', sym: '⛪', meaning: 'Tradition, conformity, spiritual wisdom' },
+  { num: 6, name: 'The Lovers', sym: '💞', meaning: 'Love, harmony, choices, alignment' },
+  { num: 7, name: 'The Chariot', sym: '⚔️', meaning: 'Control, willpower, victory, assertion' },
+  { num: 8, name: 'Strength', sym: '🦁', meaning: 'Courage, patience, control, compassion' },
+  { num: 9, name: 'The Hermit', sym: '🕯️', meaning: 'Soul searching, introspection, inner guidance' },
+  { num: 10, name: 'Wheel of Fortune', sym: '☸️', meaning: 'Good luck, karma, destiny, a turning point' },
+  { num: 11, name: 'Justice', sym: '⚖️', meaning: 'Justice, fairness, truth, cause and effect' },
+  { num: 12, name: 'The Hanged Man', sym: '🔄', meaning: 'Suspension, restriction, letting go' },
+  { num: 13, name: 'Death', sym: '💀', meaning: 'Endings, beginnings, change, transformation' },
+  { num: 14, name: 'Temperance', sym: '✨', meaning: 'Balance, moderation, patience, purpose' },
+  { num: 15, name: 'The Devil', sym: '🔗', meaning: 'Addiction, materialism, sexuality, bondage' },
+  { num: 16, name: 'The Tower', sym: '🗼', meaning: 'Sudden change, upheaval, chaos, revelation' },
+  { num: 17, name: 'The Star', sym: '⭐', meaning: 'Hope, faith, purpose, renewal' },
+  { num: 18, name: 'The Moon', sym: '🌕', meaning: 'Illusion, fear, unconscious, confusion' },
+  { num: 19, name: 'The Sun', sym: '☀️', meaning: 'Positivity, fun, warmth, success' },
+  { num: 20, name: 'Judgement', sym: '🔔', meaning: 'Reflection, reckoning, awakening' },
+  { num: 21, name: 'The World', sym: '🌍', meaning: 'Completion, integration, accomplishment' },
+];
+
+const TAROT_SUITS = ['Wands','Cups','Swords','Pentacles'];
+const TAROT_SUIT_SYMS = { Wands:'🪄', Cups:'🏆', Swords:'⚔️', Pentacles:'🌟' };
+const TAROT_MEANINGS = {
+  Wands: 'fire, ambition, action',
+  Cups: 'water, emotion, intuition',
+  Swords: 'air, intellect, conflict',
+  Pentacles: 'earth, wealth, material'
+};
+
+function buildStandardDeck() {
+  const cards = [];
+  SUITS.forEach((suit, si) => {
+    VALUES.forEach(val => {
+      const name = (VALUE_NAMES[val] || val) + ' of ' + SUIT_NAMES[si];
+      cards.push({ type: 'standard', suit, val, name, id: `${val}${suit}`, red: RED_SUITS.has(suit) });
+    });
+  });
+  cards.push({ type: 'joker', name: 'Red Joker', id: 'JR', sym: '🃏', red: true });
+  cards.push({ type: 'joker', name: 'Black Joker', id: 'JB', sym: '🃏', red: false });
+  return cards;
+}
+
+function buildTarotDeck() {
+  const cards = [];
+  MAJOR_ARCANA.forEach(c => {
+    cards.push({ type: 'major', name: c.name, id: `MA${c.num}`, num: c.num, sym: c.sym, meaning: c.meaning });
+  });
+  TAROT_SUITS.forEach(suit => {
+    const sym = TAROT_SUIT_SYMS[suit];
+    for (let i = 1; i <= 14; i++) {
+      const label = i === 1 ? 'Ace' : i === 11 ? 'Page' : i === 12 ? 'Knight' : i === 13 ? 'Queen' : i === 14 ? 'King' : String(i);
+      const name = `${label} of ${suit}`;
+      const meaning = TAROT_MEANINGS[suit];
+      cards.push({ type: 'minor', suit, val: i, name, id: `${suit[0]}${i}`, sym, meaning });
+    }
+  });
+  return cards;
+}
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+let cardState = {
+  deckType: 'standard',
+  stacks: [], // [{name, cards}]
+  discard: [],
+  currentCard: null,
+  cardLog: [],
+  activeStack: 0,
+};
+
+function initDeck(type, customCards) {
+  const base = customCards ? customCards : (type === 'tarot' ? buildTarotDeck() : buildStandardDeck());
+  cardState.deckType = type;
+  cardState.stacks = [{ name: 'Main Deck', cards: shuffle(base) }];
+  cardState.discard = [];
+  cardState.currentCard = null;
+  cardState.cardLog = [];
+  renderCards();
+  saveState();
+}
+
+function addDeckAsStack(name, type, customCards) {
+  const base = customCards ? customCards : (type === 'tarot' ? buildTarotDeck() : buildStandardDeck());
+  cardState.deckType = type;
+  const stackName = name || `Stack ${cardState.stacks.length + 1}`;
+  cardState.stacks.push({ name: stackName, cards: shuffle(base) });
+  renderCards();
+  saveState();
+}
+
+function renderCardDisplay(card) {
+  const wrap = document.getElementById('current-card-wrap');
+  if (!card) {
+    wrap.innerHTML = '<div style="text-align:center; color:var(--ash); font-style:italic; font-size:0.85rem;">No card drawn yet.<br><small>Begin a new deck and draw.</small></div>';
+    return;
+  }
+  let cardHtml = '';
+  let infoHtml = '';
+
+  if (card.type === 'standard') {
+    const cls = card.red ? 'red' : 'black';
+    cardHtml = `
+      <div class="playing-card ${cls}">
+        <div class="card-corner tl">${card.val}<br>${card.suit}</div>
+        <div class="card-center-symbol">${card.suit}</div>
+        <div class="card-corner br">${card.val}<br>${card.suit}</div>
+      </div>`;
+    infoHtml = `
+      <div class="current-card-name">${card.name}</div>`;
+  } else if (card.type === 'joker') {
+    cardHtml = `
+      <div class="playing-card joker">
+        <div class="card-corner tl">J</div>
+        <div class="card-center-symbol">🃏</div>
+        <div class="card-corner br">J</div>
+      </div>`;
+    infoHtml = `<div class="current-card-name">${card.name}</div>`;
+  } else if (card.type === 'major') {
+    const rev = card.reversed ? 'reversed' : '';
+    cardHtml = `
+      <div class="tarot-card ${rev}">
+        <div class="tarot-number">${card.num === 0 ? '0' : card.num}</div>
+        <div class="tarot-symbol">${card.sym}</div>
+        <div class="tarot-name">${card.name}</div>
+      </div>`;
+    infoHtml = `
+      <div class="current-card-name">${card.name}${card.reversed ? ' ✦ Reversed' : ''}</div>
+      <div class="current-card-sub">Major Arcana · ${card.num}</div>
+      <div class="current-card-meaning">${card.reversed ? '(Reversed) ' : ''}${card.meaning}</div>`;
+  } else if (card.type === 'minor') {
+    const rev = card.reversed ? 'reversed' : '';
+    cardHtml = `
+      <div class="tarot-card ${rev}">
+        <div class="tarot-number">${card.suit}</div>
+        <div class="tarot-symbol">${card.sym}</div>
+        <div class="tarot-name">${card.name}</div>
+      </div>`;
+    infoHtml = `
+      <div class="current-card-name">${card.name}${card.reversed ? ' ✦ Reversed' : ''}</div>
+      <div class="current-card-sub">Minor Arcana · ${card.suit}</div>
+      <div class="current-card-meaning">${card.reversed ? '(Reversed) ' : ''}${card.meaning || ''}</div>`;
+  }
+
+  wrap.innerHTML = `
+    <div class="card-back"><div class="card-back-pattern">✦</div></div>
+    ${cardHtml}
+    <div class="current-card-info">${infoHtml}</div>
+  `;
+}
+
+function drawCard(fromStack = null, fromDiscard = false, discardIndex = null) {
+  let card;
+  let source;
+
+  if (fromDiscard && discardIndex !== null) {
+    if (cardState.discard.length === 0) return;
+    card = cardState.discard.splice(discardIndex, 1)[0];
+    source = 'discard';
+  } else if (fromDiscard) {
+    if (cardState.discard.length === 0) return;
+    card = cardState.discard.pop();
+    source = 'discard';
+  } else {
+    const stackIdx = fromStack !== null ? fromStack : cardState.activeStack;
+    const stack = cardState.stacks[stackIdx];
+    if (!stack || stack.cards.length === 0) {
+      showToast('This stack is empty!');
+      return;
+    }
+    card = stack.cards.pop();
+    source = stack.name;
+  }
+
+  if (cardState.deckType === 'tarot') {
+    card = { ...card, reversed: Math.random() < 0.5 };
+  }
+
+  // Discard previous current card
+  if (cardState.currentCard) {
+    cardState.discard.push(cardState.currentCard);
+  }
+
+  cardState.currentCard = card;
+  cardState.cardLog.unshift({ card, source, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), action: 'draw' });
+
+  renderCards();
+  saveState();
+}
+
+function discardCurrentCard() {
+  if (!cardState.currentCard) return;
+  cardState.discard.push(cardState.currentCard);
+  cardState.cardLog.unshift({ card: cardState.currentCard, source: 'hand', time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), action: 'discard' });
+  cardState.currentCard = null;
+  renderCards();
+  saveState();
+}
+
+function cardSymbol(card) {
+  if (!card) return '';
+  if (card.type === 'standard') return `${card.val}${card.suit}`;
+  if (card.type === 'joker') return '🃏';
+  if (card.type === 'major') return card.sym;
+  if (card.type === 'minor') return card.sym;
+  return '';
+}
+
+function renderStacks() {
+  const area = document.getElementById('stacks-area');
+  area.innerHTML = cardState.stacks.map((stack, i) => `
+    <div class="stack-card ${i === cardState.activeStack ? 'draw-source' : ''}" onclick="setActiveStack(${i})" style="position:relative;">
+      <button class="rename-btn" onclick="event.stopPropagation(); openRename('stack', ${i})" title="Rename">✎</button>
+      ${cardState.stacks.length > 1 ? `<button class="stack-close-btn" onclick="event.stopPropagation(); removeStack(${i})" title="Remove stack">✕</button>` : ''}
+      <div class="stack-name">${stack.name} ${i === cardState.activeStack ? '✦' : ''}</div>
+      <div class="stack-count">${stack.cards.length}</div>
+      <div class="stack-count-label">cards remaining</div>
+      <div class="stack-actions">
+        <button class="card-action-btn" onclick="event.stopPropagation(); shuffleStack(${i})" style="font-size:0.55rem; padding:3px 6px;">Shuffle</button>
+        ${cardState.stacks.length > 1 ? `<button class="card-action-btn" onclick="event.stopPropagation(); mergeStack(${i})" style="font-size:0.55rem; padding:3px 6px;">Merge→Main</button>` : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+function setActiveStack(i) {
+  cardState.activeStack = i;
+  renderStacks();
+}
+
+function shuffleStack(i) {
+  cardState.stacks[i].cards = shuffle(cardState.stacks[i].cards);
+  showToast(`${cardState.stacks[i].name} shuffled`);
+  saveState();
+}
+
+function mergeStack(i) {
+  if (i === 0) return;
+  cardState.stacks[0].cards = shuffle([...cardState.stacks[0].cards, ...cardState.stacks[i].cards]);
+  cardState.stacks.splice(i, 1);
+  if (cardState.activeStack >= cardState.stacks.length) cardState.activeStack = 0;
+  renderCards();
+  saveState();
+  showToast('Stacks merged');
+}
+
+function removeStack(i) {
+  if (cardState.stacks.length <= 1) return;
+  const name = cardState.stacks[i].name;
+  cardState.stacks.splice(i, 1);
+  if (cardState.activeStack >= cardState.stacks.length) cardState.activeStack = 0;
+  renderCards();
+  saveState();
+  showToast(`"${name}" removed`);
+}
+
+function renderDiscard() {
+  const list = document.getElementById('discard-list');
+  if (cardState.discard.length === 0) {
+    list.innerHTML = '<div style="color:var(--crimson); font-size:0.7rem; font-style:italic; padding:8px; text-align:center;">Empty</div>';
+    return;
+  }
+  // Show top 20, most recent first (end of array = top)
+  const items = [...cardState.discard].reverse().slice(0, 30);
+  list.innerHTML = items.map((card, i) => {
+    const realIdx = cardState.discard.length - 1 - i;
+    return `
+      <div class="discard-item" title="${card.name}">
+        <span><span class="discard-item-symbol">${cardSymbol(card)}</span>${card.name}</span>
+        <button class="take-from-discard" onclick="drawCard(null, true, ${realIdx})">Take</button>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderCardLog() {
+  const list = document.getElementById('card-log-list');
+  if (cardState.cardLog.length === 0) {
+    list.innerHTML = '';
+    return;
+  }
+  list.innerHTML = cardState.cardLog.slice(0, 60).map(e => `
+    <div class="discard-item">
+      <span><span class="discard-item-symbol">${cardSymbol(e.card)}</span>${e.card.name}</span>
+      <span style="color:var(--ash); font-size:0.6rem;">${e.time}</span>
+    </div>
+  `).join('');
+}
+
+function renderCards() {
+  renderCardDisplay(cardState.currentCard);
+  renderStacks();
+  renderDiscard();
+  renderCardLog();
+  updateCardBtns();
+}
+
+function updateCardBtns() {
+  const hasCards = cardState.stacks.some(s => s.cards.length > 0);
+  const hasDiscard = cardState.discard.length > 0;
+  const hasCurrentCard = !!cardState.currentCard;
+  document.getElementById('draw-btn').disabled = !hasCards;
+  document.getElementById('draw-discard-top-btn').disabled = !hasDiscard;
+  document.getElementById('reshuffle-discard-btn').disabled = !hasDiscard && !hasCurrentCard;
+  document.getElementById('split-btn').disabled = !hasCards;
+}
+
+// ═══════════════════════════════════════════════════════════
+//  CLEAR DICE
+// ═══════════════════════════════════════════════════════════
+
+document.getElementById('clear-dice-btn').addEventListener('click', () => {
+  DICE.forEach(d => {
+    diceState[d.sides] = 0;
+    const el = document.getElementById(`count-${d.sides}`);
+    if (el) el.textContent = 0;
+    const sel = document.querySelector(`.die-selector[data-sides="${d.sides}"]`);
+    if (sel) sel.classList.remove('selected');
+  });
+  document.getElementById('modifier-input').value = 0;
+  updateRollSummary();
+});
+
+// ═══════════════════════════════════════════════════════════
+//  DICE POOLS
+// ═══════════════════════════════════════════════════════════
+
+// dicePools stored in localStorage
+const POOLS_KEY = 'oracle_dice_pools';
+
+function getPools() {
+  try { return JSON.parse(localStorage.getItem(POOLS_KEY)) || []; }
+  catch(e) { return []; }
+}
+
+function savePools(pools) {
+  try { localStorage.setItem(POOLS_KEY, JSON.stringify(pools)); }
+  catch(e) {}
+}
+
+function poolExpression(counts, modifier) {
+  const parts = [];
+  DICE.forEach(d => { if ((counts[d.sides] || 0) > 0) parts.push(`${counts[d.sides]}${d.symbol}`); });
+  const mod = +modifier || 0;
+  if (mod !== 0) parts.push(mod > 0 ? `+${mod}` : String(mod));
+  return parts.join(' + ') || '—';
+}
+
+function renderDicePools() {
+  const pools = getPools();
+  const wrap = document.getElementById('dice-pools-wrap');
+  const area = document.getElementById('dice-pools-area');
+  if (!wrap || !area) return;
+  wrap.style.display = pools.length === 0 ? 'none' : 'block';
+  area.innerHTML = pools.map((pool, i) => `
+    <div class="pool-tile" onclick="loadPool(${i})" style="position:relative;">
+      <button class="rename-btn" onclick="event.stopPropagation(); openRename('pool', ${i})" title="Rename">✎</button>
+      <button class="stack-close-btn" onclick="event.stopPropagation(); deletePool(${i})" title="Remove pool">✕</button>
+      <div class="pool-name">${pool.name}</div>
+      <div class="pool-expr">${poolExpression(pool.counts, pool.modifier)}</div>
+      <div class="pool-actions">
+        <button class="card-action-btn" onclick="event.stopPropagation(); loadAndRollPool(${i})" style="font-size:0.55rem; padding:3px 6px;">Roll</button>
+        <button class="card-action-btn" onclick="event.stopPropagation(); loadPool(${i})" style="font-size:0.55rem; padding:3px 6px;">Load</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function loadPool(i) {
+  const pool = getPools()[i];
+  if (!pool) return;
+  DICE.forEach(d => {
+    diceState[d.sides] = pool.counts[d.sides] || 0;
+    const el = document.getElementById(`count-${d.sides}`);
+    if (el) el.textContent = diceState[d.sides];
+    const sel = document.querySelector(`.die-selector[data-sides="${d.sides}"]`);
+    if (sel) sel.classList.toggle('selected', diceState[d.sides] > 0);
+  });
+  document.getElementById('modifier-input').value = pool.modifier || 0;
+  updateRollSummary();
+  showToast(`"${pool.name}" loaded`);
+}
+
+function loadAndRollPool(i) {
+  loadPool(i);
+  setTimeout(doRoll, 50);
+}
+
+function deletePool(i) {
+  const pools = getPools();
+  const name = pools[i].name;
+  pools.splice(i, 1);
+  savePools(pools);
+  renderDicePools();
+  showToast(`"${name}" removed`);
+}
+
+document.getElementById('save-pool-btn').addEventListener('click', () => {
+  const parts = [];
+  DICE.forEach(d => { if (diceState[d.sides] > 0) parts.push(`${diceState[d.sides]}${d.symbol}`); });
+  if (parts.length === 0) return;
+  const mod = document.getElementById('modifier-input').value || '0';
+  const expr = poolExpression(diceState, mod);
+  const pools = getPools();
+  // Default name: the expression itself
+  pools.push({ name: expr, counts: { ...diceState }, modifier: +mod, id: Date.now() });
+  savePools(pools);
+  renderDicePools();
+  showToast('Pool saved');
+});
+
+// ═══════════════════════════════════════════════════════════
+//  RENAME SYSTEM
+// ═══════════════════════════════════════════════════════════
+
+let renameTarget = null; // { type: 'stack'|'pool', index: number }
+
+function openRename(type, index) {
+  const currentName = type === 'stack'
+    ? cardState.stacks[index]?.name
+    : getPools()[index]?.name;
+  if (currentName === undefined) return;
+  renameTarget = { type, index };
+  const input = document.getElementById('rename-input');
+  input.value = currentName;
+  document.getElementById('rename-modal').classList.add('open');
+  setTimeout(() => { input.select(); }, 80);
+}
+
+function confirmRename() {
+  if (!renameTarget) return;
+  const newName = document.getElementById('rename-input').value.trim();
+  if (!newName) { showToast('Name cannot be empty'); return; }
+  if (renameTarget.type === 'stack') {
+    cardState.stacks[renameTarget.index].name = newName;
+    renderStacks();
+    saveState();
+  } else {
+    const pools = getPools();
+    pools[renameTarget.index].name = newName;
+    savePools(pools);
+    renderDicePools();
+  }
+  document.getElementById('rename-modal').classList.remove('open');
+  renameTarget = null;
+  showToast('Renamed');
+}
+
+document.getElementById('rename-confirm').addEventListener('click', confirmRename);
+document.getElementById('rename-cancel').addEventListener('click', () => {
+  document.getElementById('rename-modal').classList.remove('open');
+  renameTarget = null;
+});
+document.getElementById('rename-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') confirmRename();
+  if (e.key === 'Escape') {
+    document.getElementById('rename-modal').classList.remove('open');
+    renameTarget = null;
+  }
+});
+document.getElementById('rename-modal').addEventListener('click', e => {
+  if (e.target === document.getElementById('rename-modal')) {
+    document.getElementById('rename-modal').classList.remove('open');
+    renameTarget = null;
+  }
+});
+
+// ═══════════════════════════════════════════════════════════
+//  SPLIT MODAL
+// ═══════════════════════════════════════════════════════════
+
+let splitStackCount = 2;
+
+document.getElementById('split-btn').addEventListener('click', () => {
+  splitStackCount = 2;
+  const activeStack = cardState.stacks[cardState.activeStack];
+  const total = activeStack.cards.length;
+
+  const inputs = document.getElementById('split-inputs');
+  inputs.innerHTML = [1,2].map(n => `
+    <div class="stack-input-row">
+      <span class="stack-input-label">Stack ${n}:</span>
+      <input type="number" class="stack-input" min="1" max="${total}" placeholder="# cards" data-stack="${n}">
+    </div>
+  `).join('');
+
+  document.getElementById('split-source-label').textContent =
+    `Splitting "${activeStack.name}" — ${total} cards`;
+  updateSplitTally();
+  document.getElementById('split-modal').classList.add('open');
+});
+
+function updateSplitTally() {
+  const srcTotal = cardState.stacks[cardState.activeStack]?.cards.length || 0;
+  const inputs = document.querySelectorAll('#split-inputs .stack-input');
+  let assigned = 0;
+  inputs.forEach(inp => { const v = parseInt(inp.value); if (v > 0) assigned += v; });
+  const remaining = srcTotal - assigned;
+  const tallyNums = document.getElementById('split-tally-nums');
+  const tallyStatus = document.getElementById('split-tally-status');
+  const confirmBtn = document.getElementById('split-confirm');
+  if (tallyNums) tallyNums.textContent = `${assigned} / ${srcTotal}`;
+  if (remaining === 0 && assigned > 0) {
+    if (tallyStatus) { tallyStatus.textContent = '✓ All cards assigned'; tallyStatus.style.color = '#7eff7a'; }
+    if (confirmBtn) { confirmBtn.disabled = false; confirmBtn.style.opacity = '1'; }
+  } else if (remaining < 0) {
+    if (tallyStatus) { tallyStatus.textContent = `${Math.abs(remaining)} too many`; tallyStatus.style.color = '#ff6b6b'; }
+    if (confirmBtn) { confirmBtn.disabled = true; confirmBtn.style.opacity = '0.4'; }
+  } else {
+    if (tallyStatus) { tallyStatus.textContent = remaining > 0 ? `${remaining} unassigned` : ''; tallyStatus.style.color = 'var(--ash)'; }
+    if (confirmBtn) { confirmBtn.disabled = true; confirmBtn.style.opacity = '0.4'; }
+  }
+}
+
+// Live tally on input
+document.getElementById('split-inputs').addEventListener('input', updateSplitTally);
+
+document.getElementById('add-split-stack').addEventListener('click', () => {
+  if (splitStackCount >= 8) return;
+  splitStackCount++;
+  const srcTotal = cardState.stacks[cardState.activeStack]?.cards.length || 0;
+  const row = document.createElement('div');
+  row.className = 'stack-input-row';
+  row.innerHTML = `
+    <span class="stack-input-label">Stack ${splitStackCount}:</span>
+    <input type="number" class="stack-input" min="1" max="${srcTotal}" placeholder="# cards" data-stack="${splitStackCount}">
+  `;
+  document.getElementById('split-inputs').appendChild(row);
+  updateSplitTally();
+});
+
+document.getElementById('split-cancel').addEventListener('click', () => {
+  document.getElementById('split-modal').classList.remove('open');
+});
+
+document.getElementById('split-confirm').addEventListener('click', () => {
+  const inputs = document.querySelectorAll('#split-inputs .stack-input');
+  const counts = [];
+  inputs.forEach(inp => {
+    const v = parseInt(inp.value);
+    if (v > 0) counts.push(v);
+  });
+  if (counts.length === 0) { showToast('Enter stack sizes'); return; }
+
+  const srcIdx = cardState.activeStack;
+  const srcStack = cardState.stacks[srcIdx];
+  const srcCards = [...srcStack.cards];
+  const total = counts.reduce((a, b) => a + b, 0);
+
+  if (total !== srcCards.length) {
+    showToast(`All ${srcCards.length} cards must be assigned (${total} assigned)`);
+    return;
+  }
+
+  // Build new stacks from the source cards
+  const newStacks = [...cardState.stacks];
+  let cursor = 0;
+  const splitStacks = counts.map((count, i) => ({
+    name: counts.length === 1 ? srcStack.name : `${srcStack.name} ${i + 1}`,
+    cards: srcCards.slice(cursor, (cursor += count)),
+  }));
+
+  // Replace the source stack slot with the first new stack, append the rest
+  newStacks.splice(srcIdx, 1, ...splitStacks);
+  cardState.stacks = newStacks;
+  if (cardState.activeStack >= cardState.stacks.length) cardState.activeStack = 0;
+
+  document.getElementById('split-modal').classList.remove('open');
+  renderCards();
+  saveState();
+  showToast(`"${srcStack.name}" split into ${counts.length} stacks`);
+});
+
+// ═══════════════════════════════════════════════════════════
+//  STATE PERSISTENCE & SHARING
+// ═══════════════════════════════════════════════════════════
+
+function saveState() {
+  try {
+    const state = {
+      activeTab: document.querySelector('.tab-btn.active')?.dataset.tab,
+      dice: { counts: diceState, modifier: document.getElementById('modifier-input').value, log: diceLog.slice(0, 30) },
+      cards: {
+        deckType: cardState.deckType,
+        stacks: cardState.stacks,
+        discard: cardState.discard,
+        currentCard: cardState.currentCard,
+        activeStack: cardState.activeStack,
+        cardLog: cardState.cardLog.slice(0, 30),
+      }
+    };
+    localStorage.setItem('oracle_state', JSON.stringify(state));
+  } catch(e) {}
+}
+
+function loadState() {
+  try {
+    // URL state first
+    const hash = location.hash.slice(1);
+    if (hash) {
+      const state = JSON.parse(decodeURIComponent(atob(hash)));
+      applyState(state);
+      return;
+    }
+    const raw = localStorage.getItem('oracle_state');
+    if (raw) applyState(JSON.parse(raw));
+  } catch(e) {
+    console.warn('Could not load state', e);
+  }
+}
+
+function applyState(state) {
+  if (!state) return;
+  // Tab
+  if (state.activeTab) switchTab(state.activeTab);
+  // Dice
+  if (state.dice) {
+    Object.assign(diceState, state.dice.counts || {});
+    document.getElementById('modifier-input').value = state.dice.modifier || 0;
+    diceLog = state.dice.log || [];
+    // Update UI counts
+    DICE.forEach(d => {
+      const el = document.getElementById(`count-${d.sides}`);
+      if (el) el.textContent = diceState[d.sides] || 0;
+      const sel = document.querySelector(`.die-selector[data-sides="${d.sides}"]`);
+      if (sel) sel.classList.toggle('selected', (diceState[d.sides] || 0) > 0);
+    });
+    updateRollSummary();
+    renderDiceLog();
+  }
+  // Cards
+  if (state.cards) {
+    cardState = { ...cardState, ...state.cards };
+    const sel = document.getElementById('deck-type-select');
+    if (sel) sel.value = cardState.deckType || 'standard';
+    renderCards();
+  }
+}
+
+function getShareUrl() {
+  const state = {
+    activeTab: document.querySelector('.tab-btn.active')?.dataset.tab,
+    dice: { counts: diceState, modifier: document.getElementById('modifier-input').value, log: diceLog.slice(0, 10) },
+    cards: {
+      deckType: cardState.deckType,
+      stacks: cardState.stacks,
+      discard: cardState.discard,
+      currentCard: cardState.currentCard,
+      activeStack: cardState.activeStack,
+      cardLog: cardState.cardLog.slice(0, 10),
+    }
+  };
+  const encoded = btoa(encodeURIComponent(JSON.stringify(state)));
+  return `${location.origin}${location.pathname}#${encoded}`;
+}
+
+document.getElementById('share-btn').addEventListener('click', () => {
+  const url = getShareUrl();
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(url).then(() => showToast('State URL copied to clipboard!'));
+  } else {
+    // Fallback
+    const ta = document.createElement('textarea');
+    ta.value = url;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    showToast('State URL copied!');
+  }
+});
+
+// ═══════════════════════════════════════════════════════════
+//  UI EVENTS
+// ═══════════════════════════════════════════════════════════
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.id === `panel-${tab}`));
+  reorderSidebar(tab);
+}
+
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => { switchTab(btn.dataset.tab); saveState(); });
+});
+
+document.getElementById('roll-btn').addEventListener('click', doRoll);
+document.getElementById('modifier-input').addEventListener('input', updateRollSummary);
+
+document.getElementById('clear-dice-log-btn').addEventListener('click', () => {
+  diceLog = [];
+  renderDiceLog();
+  saveState();
+});
+
+// ═══════════════════════════════════════════════════════════
+//  DECK CUSTOMIZER
+// ═══════════════════════════════════════════════════════════
+
+// Selection state for customizer
+let customizerState = {
+  type: 'standard',
+  // standard: which suits and values are on
+  std_suits: new Set(['♠','♥','♦','♣']),
+  std_values: new Set(['A','2','3','4','5','6','7','8','9','10','J','Q','K']),
+  std_jokers: true,
+  // tarot: which major arcana nums and which minor suits
+  tarot_major: new Set(MAJOR_ARCANA.map(c => c.num)),
+  tarot_suits: new Set(['Wands','Cups','Swords','Pentacles']),
+  tarot_minor_vals: new Set([1,2,3,4,5,6,7,8,9,10,11,12,13,14]),
+};
+
+function customizerCount() {
+  if (customizerState.type === 'standard') {
+    let n = customizerState.std_suits.size * customizerState.std_values.size;
+    if (customizerState.std_jokers) n += 2;
+    return n;
+  } else {
+    const major = customizerState.tarot_major.size;
+    const minor = customizerState.tarot_suits.size * customizerState.tarot_minor_vals.size;
+    return major + minor;
+  }
+}
+
+function buildCustomCards() {
+  const cards = [];
+  if (customizerState.type === 'standard') {
+    SUITS.forEach((suit, si) => {
+      if (!customizerState.std_suits.has(suit)) return;
+      VALUES.forEach(val => {
+        if (!customizerState.std_values.has(val)) return;
+        const name = (VALUE_NAMES[val] || val) + ' of ' + SUIT_NAMES[si];
+        cards.push({ type: 'standard', suit, val, name, id: `${val}${suit}`, red: RED_SUITS.has(suit) });
+      });
+    });
+    if (customizerState.std_jokers) {
+      cards.push({ type: 'joker', name: 'Red Joker', id: 'JR', sym: '🃏', red: true });
+      cards.push({ type: 'joker', name: 'Black Joker', id: 'JB', sym: '🃏', red: false });
+    }
+  } else {
+    MAJOR_ARCANA.forEach(c => {
+      if (!customizerState.tarot_major.has(c.num)) return;
+      cards.push({ type: 'major', name: c.name, id: `MA${c.num}`, num: c.num, sym: c.sym, meaning: c.meaning });
+    });
+    TAROT_SUITS.forEach(suit => {
+      if (!customizerState.tarot_suits.has(suit)) return;
+      const sym = TAROT_SUIT_SYMS[suit];
+      for (let i = 1; i <= 14; i++) {
+        if (!customizerState.tarot_minor_vals.has(i)) continue;
+        const label = i === 1 ? 'Ace' : i === 11 ? 'Page' : i === 12 ? 'Knight' : i === 13 ? 'Queen' : i === 14 ? 'King' : String(i);
+        const name = `${label} of ${suit}`;
+        cards.push({ type: 'minor', suit, val: i, name, id: `${suit[0]}${i}`, sym, meaning: TAROT_MEANINGS[suit] });
+      }
+    });
+  }
+  return cards;
+}
+
+function renderCustomizer() {
+  const body = document.getElementById('customize-body');
+  const t = customizerState.type;
+
+  function chip(label, key, set, isRed) {
+    const on = set.has(key);
+    return `<button class="toggle-chip ${on ? 'on' : ''} ${isRed ? 'red-chip' : ''}" 
+      data-key="${key}" data-set="${label}" onclick="toggleChip(this,'${label}','${String(key)}',${JSON.stringify(isRed||false)})"
+    >${label === 'suit' ? key : label === 'val' ? key : label === 'jokers' ? key : key}</button>`;
+  }
+
+  let html = '';
+
+  // Type tabs
+  html += `<div class="customize-type-tabs">
+    <button class="customize-type-tab ${t==='standard'?'active':''}" onclick="setCustType('standard')">Standard 54</button>
+    <button class="customize-type-tab ${t==='tarot'?'active':''}" onclick="setCustType('tarot')">Tarot 78</button>
+  </div>`;
+
+  if (t === 'standard') {
+    // Suits
+    html += `<div class="customize-section">
+      <div class="customize-section-title">Suits</div>
+      <div class="chip-group-actions">
+        <button class="chip-group-btn" onclick="custAllSuits(true)">All</button>
+        <button class="chip-group-btn" onclick="custAllSuits(false)">None</button>
+        <button class="chip-group-btn" onclick="custRedBlack('red')">Red Only</button>
+        <button class="chip-group-btn" onclick="custRedBlack('black')">Black Only</button>
+      </div>
+      <div class="toggle-row">
+        ${SUITS.map((s,i) => {
+          const isRed = RED_SUITS.has(s);
+          const on = customizerState.std_suits.has(s);
+          return `<button class="toggle-chip ${on?'on':''} ${isRed?'red-chip':''}" onclick="custToggleSuit('${s}')">${s} ${SUIT_NAMES[i]}</button>`;
+        }).join('')}
+      </div>
+    </div>`;
+
+    // Values
+    html += `<div class="customize-section">
+      <div class="customize-section-title">Values</div>
+      <div class="chip-group-actions">
+        <button class="chip-group-btn" onclick="custAllVals(true)">All</button>
+        <button class="chip-group-btn" onclick="custAllVals(false)">None</button>
+        <button class="chip-group-btn" onclick="custValRange('pip')">Pip Only (A–10)</button>
+        <button class="chip-group-btn" onclick="custValRange('face')">Face Only (J Q K)</button>
+        <button class="chip-group-btn" onclick="custValRange('num')">Numeric (2–10)</button>
+      </div>
+      <div class="toggle-row">
+        ${VALUES.map(v => {
+          const on = customizerState.std_values.has(v);
+          return `<button class="toggle-chip ${on?'on':''}" onclick="custToggleVal('${v}')">${v}</button>`;
+        }).join('')}
+      </div>
+    </div>`;
+
+    // Jokers
+    html += `<div class="customize-section">
+      <div class="customize-section-title">Extras</div>
+      <div class="toggle-row">
+        <button class="toggle-chip ${customizerState.std_jokers?'on':''}" onclick="custToggleJokers()">🃏 Jokers (×2)</button>
+      </div>
+    </div>`;
+
+  } else {
+    // Tarot: Major Arcana
+    html += `<div class="customize-section">
+      <div class="customize-section-title">Major Arcana</div>
+      <div class="chip-group-actions">
+        <button class="chip-group-btn" onclick="custAllMajor(true)">All</button>
+        <button class="chip-group-btn" onclick="custAllMajor(false)">None</button>
+      </div>
+      <div class="toggle-row">
+        ${MAJOR_ARCANA.map(c => {
+          const on = customizerState.tarot_major.has(c.num);
+          return `<button class="toggle-chip ${on?'on':''}" onclick="custToggleMajor(${c.num})" title="${c.meaning}">${c.sym} ${c.name}</button>`;
+        }).join('')}
+      </div>
+    </div>`;
+
+    // Tarot: Minor Suits
+    html += `<div class="customize-section">
+      <div class="customize-section-title">Minor Arcana — Suits</div>
+      <div class="chip-group-actions">
+        <button class="chip-group-btn" onclick="custAllTarotSuits(true)">All</button>
+        <button class="chip-group-btn" onclick="custAllTarotSuits(false)">None</button>
+      </div>
+      <div class="toggle-row">
+        ${TAROT_SUITS.map(s => {
+          const on = customizerState.tarot_suits.has(s);
+          return `<button class="toggle-chip ${on?'on':''}" onclick="custToggleTarotSuit('${s}')">${TAROT_SUIT_SYMS[s]} ${s}</button>`;
+        }).join('')}
+      </div>
+    </div>`;
+
+    // Tarot: Minor Values
+    const minorLabels = {1:'Ace',2:'2',3:'3',4:'4',5:'5',6:'6',7:'7',8:'8',9:'9',10:'10',11:'Page',12:'Knight',13:'Queen',14:'King'};
+    html += `<div class="customize-section">
+      <div class="customize-section-title">Minor Arcana — Ranks</div>
+      <div class="chip-group-actions">
+        <button class="chip-group-btn" onclick="custAllTarotVals(true)">All</button>
+        <button class="chip-group-btn" onclick="custAllTarotVals(false)">None</button>
+        <button class="chip-group-btn" onclick="custTarotRange('pip')">Pip (Ace–10)</button>
+        <button class="chip-group-btn" onclick="custTarotRange('court')">Court (Page–King)</button>
+      </div>
+      <div class="toggle-row">
+        ${Object.entries(minorLabels).map(([v,l]) => {
+          const on = customizerState.tarot_minor_vals.has(+v);
+          return `<button class="toggle-chip ${on?'on':''}" onclick="custToggleTarotVal(${v})">${l}</button>`;
+        }).join('')}
+      </div>
+    </div>`;
+  }
+
+  body.innerHTML = html;
+  updateCustomizeCount();
+}
+
+function updateCustomizeCount() {
+  const n = customizerCount();
+  document.getElementById('customize-count').textContent = `${n} card${n!==1?'s':''}`;
+}
+
+// Customizer toggle helpers (called from inline onclick)
+function setCustType(t) { customizerState.type = t; renderCustomizer(); }
+function custToggleSuit(s) { customizerState.std_suits.has(s) ? customizerState.std_suits.delete(s) : customizerState.std_suits.add(s); renderCustomizer(); }
+function custToggleVal(v) { customizerState.std_values.has(v) ? customizerState.std_values.delete(v) : customizerState.std_values.add(v); renderCustomizer(); }
+function custToggleJokers() { customizerState.std_jokers = !customizerState.std_jokers; renderCustomizer(); }
+function custAllSuits(on) { customizerState.std_suits = on ? new Set(SUITS) : new Set(); renderCustomizer(); }
+function custAllVals(on) { customizerState.std_values = on ? new Set(VALUES) : new Set(); renderCustomizer(); }
+function custRedBlack(which) {
+  if (which === 'red') customizerState.std_suits = new Set(['♥','♦']);
+  else customizerState.std_suits = new Set(['♠','♣']);
+  renderCustomizer();
+}
+function custValRange(range) {
+  if (range === 'pip') customizerState.std_values = new Set(['A','2','3','4','5','6','7','8','9','10']);
+  else if (range === 'face') customizerState.std_values = new Set(['J','Q','K']);
+  else if (range === 'num') customizerState.std_values = new Set(['2','3','4','5','6','7','8','9','10']);
+  renderCustomizer();
+}
+function custToggleMajor(n) { customizerState.tarot_major.has(n) ? customizerState.tarot_major.delete(n) : customizerState.tarot_major.add(n); renderCustomizer(); }
+function custAllMajor(on) { customizerState.tarot_major = on ? new Set(MAJOR_ARCANA.map(c=>c.num)) : new Set(); renderCustomizer(); }
+function custToggleTarotSuit(s) { customizerState.tarot_suits.has(s) ? customizerState.tarot_suits.delete(s) : customizerState.tarot_suits.add(s); renderCustomizer(); }
+function custAllTarotSuits(on) { customizerState.tarot_suits = on ? new Set(TAROT_SUITS) : new Set(); renderCustomizer(); }
+function custToggleTarotVal(v) { customizerState.tarot_minor_vals.has(v) ? customizerState.tarot_minor_vals.delete(v) : customizerState.tarot_minor_vals.add(v); renderCustomizer(); }
+function custAllTarotVals(on) { customizerState.tarot_minor_vals = on ? new Set([1,2,3,4,5,6,7,8,9,10,11,12,13,14]) : new Set(); renderCustomizer(); }
+function custTarotRange(range) {
+  if (range === 'pip') customizerState.tarot_minor_vals = new Set([1,2,3,4,5,6,7,8,9,10]);
+  else customizerState.tarot_minor_vals = new Set([11,12,13,14]);
+  renderCustomizer();
+}
+
+function resetCustomizer() {
+  customizerState = {
+    type: 'standard',
+    std_suits: new Set(['♠','♥','♦','♣']),
+    std_values: new Set(['A','2','3','4','5','6','7','8','9','10','J','Q','K']),
+    std_jokers: true,
+    tarot_major: new Set(MAJOR_ARCANA.map(c => c.num)),
+    tarot_suits: new Set(['Wands','Cups','Swords','Pentacles']),
+    tarot_minor_vals: new Set([1,2,3,4,5,6,7,8,9,10,11,12,13,14]),
+  };
+}
+
+// Pending built card set (passed from customizer → new deck action modal)
+let pendingCustomCards = null;
+let pendingDeckType = 'standard';
+
+function openCustomizer() {
+  renderCustomizer();
+  document.getElementById('customize-modal').classList.add('open');
+}
+
+document.getElementById('customize-deck-btn').addEventListener('click', openCustomizer);
+document.getElementById('customize-close').addEventListener('click', () => document.getElementById('customize-modal').classList.remove('open'));
+document.getElementById('customize-cancel').addEventListener('click', () => document.getElementById('customize-modal').classList.remove('open'));
+document.getElementById('customize-reset').addEventListener('click', () => { resetCustomizer(); renderCustomizer(); });
+
+document.getElementById('customize-confirm').addEventListener('click', () => {
+  const n = customizerCount();
+  if (n === 0) { showToast('Select at least one card'); return; }
+  pendingCustomCards = buildCustomCards();
+  pendingDeckType = customizerState.type;
+  document.getElementById('customize-modal').classList.remove('open');
+  // Pre-fill name suggestion
+  const nameInput = document.getElementById('new-stack-name-input');
+  nameInput.value = suggestStackName();
+  document.getElementById('new-deck-action-desc').textContent = `${n} card${n!==1?'s':''} selected — how should they be added?`;
+  document.getElementById('new-deck-action-modal').classList.add('open');
+});
+
+// ═══════════════════════════════════════════════════════════
+//  NEW DECK ACTION MODAL
+// ═══════════════════════════════════════════════════════════
+
+function suggestStackName() {
+  if (customizerState.type === 'tarot') {
+    const suits = [...customizerState.tarot_suits];
+    if (suits.length === 4 && customizerState.tarot_major.size === 22) return 'Full Tarot';
+    if (customizerState.tarot_major.size > 0 && suits.length === 0) return 'Major Arcana';
+    if (customizerState.tarot_major.size === 0 && suits.length > 0) return suits.join(' & ');
+    return 'Tarot Selection';
+  } else {
+    const suits = [...customizerState.std_suits].map((s,_) => SUIT_NAMES[SUITS.indexOf(s)]);
+    const vals = [...customizerState.std_values];
+    if (suits.length === 4 && vals.length === 13 && customizerState.std_jokers) return 'Full Deck';
+    if (suits.length === 4 && vals.length === 13) return 'No Jokers';
+    if (suits.length > 0 && suits.length <= 2) return suits.join(' & ');
+    return 'Custom Deck';
+  }
+}
+
+function openNewDeckModal(isDefault) {
+  // isDefault = no customizer, use current deck-type-select
+  if (isDefault) {
+    pendingCustomCards = null;
+    pendingDeckType = document.getElementById('deck-type-select').value;
+    const count = pendingDeckType === 'tarot' ? 78 : 54;
+    document.getElementById('new-deck-action-desc').textContent = `${count} card ${pendingDeckType === 'tarot' ? 'Tarot' : 'Standard'} deck — how should it be added?`;
+    document.getElementById('new-stack-name-input').value = pendingDeckType === 'tarot' ? 'Tarot Deck' : 'Standard Deck';
+  }
+  document.getElementById('new-deck-action-modal').classList.add('open');
+}
+
+document.getElementById('new-deck-btn').addEventListener('click', () => openNewDeckModal(true));
+
+document.getElementById('ndaction-cancel').addEventListener('click', () => {
+  document.getElementById('new-deck-action-modal').classList.remove('open');
+  pendingCustomCards = null;
+});
+
+document.getElementById('ndaction-replace').addEventListener('click', () => {
+  const name = document.getElementById('new-stack-name-input').value.trim() || 'Main Deck';
+  document.getElementById('new-deck-action-modal').classList.remove('open');
+  const cards = pendingCustomCards;
+  const type = pendingDeckType;
+  pendingCustomCards = null;
+  cardState.deckType = type;
+  cardState.stacks = [{ name, cards: shuffle(cards || (type === 'tarot' ? buildTarotDeck() : buildStandardDeck())) }];
+  cardState.discard = [];
+  cardState.currentCard = null;
+  cardState.cardLog = [];
+  renderCards();
+  saveState();
+  showToast(`"${name}" replaces all stacks`);
+});
+
+document.getElementById('ndaction-add').addEventListener('click', () => {
+  const name = document.getElementById('new-stack-name-input').value.trim() || `Stack ${cardState.stacks.length + 1}`;
+  document.getElementById('new-deck-action-modal').classList.remove('open');
+  const cards = pendingCustomCards;
+  const type = pendingDeckType;
+  pendingCustomCards = null;
+  cardState.deckType = type;
+  cardState.stacks.push({ name, cards: shuffle(cards || (type === 'tarot' ? buildTarotDeck() : buildStandardDeck())) });
+  renderCards();
+  saveState();
+  showToast(`"${name}" added as new stack`);
+});
+
+document.getElementById('deck-type-select').addEventListener('change', () => {
+  // Just update pending type, don't auto-create a deck
+});
+
+document.getElementById('draw-btn').addEventListener('click', () => drawCard());
+
+document.getElementById('draw-discard-top-btn').addEventListener('click', () => {
+  drawCard(null, true);
+});
+
+// ═══════════════════════════════════════════════════════════
+//  RESHUFFLE SYSTEM
+// ═══════════════════════════════════════════════════════════
+
+let reshuffleMode = 'discard'; // 'discard' | 'all'
+let reshuffleCurrentCardChoice = 'keep'; // 'keep' | 'discard'
+
+function openReshuffleModal(mode) {
+  reshuffleMode = mode;
+  reshuffleCurrentCardChoice = 'keep';
+
+  // Highlight the default current-card choice
+  ['reshuffle-keep-hand','reshuffle-discard-first'].forEach(id => {
+    document.getElementById(id).style.borderColor = '';
+    document.getElementById(id).style.color = '';
+  });
+  const keepBtn = document.getElementById('reshuffle-keep-hand');
+  keepBtn.style.borderColor = 'var(--gold)';
+  keepBtn.style.color = 'var(--pale-gold)';
+
+  // Show/hide current card row
+  const hasCurrentCard = !!cardState.currentCard;
+  const ccRow = document.getElementById('reshuffle-current-card-row');
+  ccRow.style.display = hasCurrentCard ? 'block' : 'none';
+
+  // Description
+  const discardCount = cardState.discard.length;
+  const currentName = cardState.currentCard?.name || '';
+  if (mode === 'discard') {
+    document.getElementById('reshuffle-modal-desc').textContent =
+      `Shuffle ${discardCount} discard card${discardCount !== 1 ? 's' : ''} back into a stack.${hasCurrentCard ? ` "${currentName}" is currently in hand.` : ''}`;
+  } else {
+    const totalCards = cardState.stacks.reduce((a,s) => a + s.cards.length, 0) + discardCount + (hasCurrentCard ? 1 : 0);
+    document.getElementById('reshuffle-modal-desc').textContent =
+      `Collect all ${totalCards} cards and reshuffle into one stack.${hasCurrentCard ? ` "${currentName}" is currently in hand.` : ''}`;
+  }
+
+  // Populate target stack select
+  const sel = document.getElementById('reshuffle-target-select');
+  sel.innerHTML = cardState.stacks.map((s, i) =>
+    `<option value="${i}" ${i === cardState.activeStack ? 'selected' : ''}>${s.name} (${s.cards.length} cards)</option>`
+  ).join('');
+
+  document.getElementById('reshuffle-modal').classList.add('open');
+}
+
+// Current card choice buttons
+['reshuffle-keep-hand','reshuffle-discard-first'].forEach(id => {
+  document.getElementById(id).addEventListener('click', () => {
+    reshuffleCurrentCardChoice = id === 'reshuffle-keep-hand' ? 'keep' : 'discard';
+    ['reshuffle-keep-hand','reshuffle-discard-first'].forEach(bid => {
+      document.getElementById(bid).style.borderColor = '';
+      document.getElementById(bid).style.color = '';
+    });
+    document.getElementById(id).style.borderColor = 'var(--gold)';
+    document.getElementById(id).style.color = 'var(--pale-gold)';
+  });
+});
+
+document.getElementById('reshuffle-cancel').addEventListener('click', () => {
+  document.getElementById('reshuffle-modal').classList.remove('open');
+});
+
+document.getElementById('reshuffle-confirm').addEventListener('click', () => {
+  const targetIdx = +document.getElementById('reshuffle-target-select').value;
+
+  // Handle current card first
+  if (cardState.currentCard && reshuffleCurrentCardChoice === 'discard') {
+    cardState.discard.push(cardState.currentCard);
+    cardState.currentCard = null;
+  }
+  // 'keep' = do nothing, leave it in hand
+
+  let cardsToShuffle = [];
+
+  if (reshuffleMode === 'discard') {
+    cardsToShuffle = [...cardState.discard];
+    cardState.discard = [];
+  } else {
+    // 'all' mode — collect everything except current card if kept
+    cardState.stacks.forEach(s => cardsToShuffle.push(...s.cards));
+    cardsToShuffle.push(...cardState.discard);
+    cardState.discard = [];
+    // Clear all stacks, will rebuild below
+    cardState.stacks = cardState.stacks.map(s => ({ ...s, cards: [] }));
+  }
+
+  // Shuffle into target stack
+  cardState.stacks[targetIdx].cards = shuffle([
+    ...cardState.stacks[targetIdx].cards,
+    ...shuffle(cardsToShuffle)
+  ]);
+
+  const count = cardsToShuffle.length;
+  const targetName = cardState.stacks[targetIdx].name;
+  cardState.cardLog.unshift({
+    card: { name: `${count} cards reshuffled into "${targetName}"`, id: 'reshuffle' },
+    source: 'reshuffle', time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    action: 'reshuffle'
+  });
+
+  document.getElementById('reshuffle-modal').classList.remove('open');
+  renderCards();
+  saveState();
+  showToast(`${count} cards reshuffled into "${targetName}"`);
+});
+
+document.getElementById('reshuffle-discard-btn').addEventListener('click', () => {
+  if (cardState.discard.length === 0 && !cardState.currentCard) return;
+  openReshuffleModal('discard');
+});
+
+document.getElementById('shuffle-btn').addEventListener('click', () => {
+  openReshuffleModal('all');
+});
+
+
+document.getElementById('clear-card-log-btn').addEventListener('click', () => {
+  cardState.cardLog = [];
+  renderCardLog();
+  saveState();
+});
+
+// ═══════════════════════════════════════════════════════════
+//  TOAST
+// ═══════════════════════════════════════════════════════════
+
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  SAVES SYSTEM
+// ═══════════════════════════════════════════════════════════
+
+const SAVES_KEY = 'oracle_saves';
+
+function getSaves() {
+  try { return JSON.parse(localStorage.getItem(SAVES_KEY)) || []; }
+  catch(e) { return []; }
+}
+
+function writeSaves(saves) {
+  try { localStorage.setItem(SAVES_KEY, JSON.stringify(saves)); }
+  catch(e) { showToast('Could not write to storage'); }
+}
+
+function buildSavePayload(name) {
+  return {
+    id: Date.now(),
+    name: name || 'Unnamed Save',
+    savedAt: new Date().toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
+    activeTab: document.querySelector('.tab-btn.active')?.dataset.tab || 'dice',
+    dice: {
+      counts: { ...diceState },
+      modifier: document.getElementById('modifier-input').value,
+      log: diceLog.slice(0, 30),
+    },
+    cards: {
+      deckType: cardState.deckType,
+      stacks: cardState.stacks,
+      discard: cardState.discard,
+      currentCard: cardState.currentCard,
+      activeStack: cardState.activeStack,
+      cardLog: cardState.cardLog.slice(0, 30),
+    },
+  };
+}
+
+function saveCurrentState() {
+  const nameInput = document.getElementById('saves-name-input');
+  const name = nameInput.value.trim();
+  if (!name) { showToast('Enter a name for this save'); nameInput.focus(); return; }
+  const saves = getSaves();
+  saves.unshift(buildSavePayload(name));
+  // Cap at 30 saves
+  if (saves.length > 30) saves.length = 30;
+  writeSaves(saves);
+  nameInput.value = '';
+  renderSavesList();
+  showToast(`"${name}" saved`);
+}
+
+function loadSave(id) {
+  const saves = getSaves();
+  const save = saves.find(s => s.id === id);
+  if (!save) return;
+  applyState(save);
+  document.getElementById('saves-modal').classList.remove('open');
+  showToast(`"${save.name}" loaded`);
+}
+
+function deleteSave(id) {
+  const saves = getSaves().filter(s => s.id !== id);
+  writeSaves(saves);
+  renderSavesList();
+}
+
+function stackSummary(cards) {
+  if (!cards) return '';
+  const s = cards.stacks || [];
+  const total = s.reduce((acc, st) => acc + (st.cards ? st.cards.length : 0), 0);
+  const discardN = (cards.discard || []).length;
+  const parts = [];
+  if (s.length) parts.push(`${s.length} stack${s.length>1?'s':''}, ${total} cards`);
+  if (discardN) parts.push(`${discardN} in discard`);
+  return parts.join(' · ') || 'Empty table';
+}
+
+function diceSummary(dice) {
+  if (!dice) return '';
+  const parts = [];
+  DICE.forEach(d => {
+    if ((dice.counts || {})[d.sides] > 0) parts.push(`${dice.counts[d.sides]}${d.symbol}`);
+  });
+  const mod = +dice.modifier;
+  if (mod) parts.push(`${mod > 0 ? '+' : ''}${mod}`);
+  return parts.length ? parts.join('+') : 'No dice';
+}
+
+function renderSavesList() {
+  const list = document.getElementById('saves-list');
+  const saves = getSaves();
+  if (saves.length === 0) {
+    list.innerHTML = '<div class="saves-empty">No saves yet — build your setup and save it here.</div>';
+    return;
+  }
+  list.innerHTML = saves.map(s => `
+    <div class="save-entry">
+      <div class="save-entry-info">
+        <div class="save-entry-name">${s.name}</div>
+        <div class="save-entry-meta">
+          ${s.savedAt} &nbsp;·&nbsp;
+          ${s.activeTab === 'cards' ? stackSummary(s.cards) : diceSummary(s.dice)}
+        </div>
+      </div>
+      <div class="save-entry-actions">
+        <button class="save-load-btn" onclick="loadSave(${s.id})">Load</button>
+        <button class="save-delete-btn" onclick="deleteSave(${s.id})">✕</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+document.getElementById('saves-btn').addEventListener('click', () => {
+  renderSavesList();
+  document.getElementById('saves-modal').classList.add('open');
+});
+
+document.getElementById('saves-close').addEventListener('click', () => {
+  document.getElementById('saves-modal').classList.remove('open');
+});
+
+document.getElementById('saves-save-btn').addEventListener('click', saveCurrentState);
+
+document.getElementById('saves-name-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') saveCurrentState();
+});
+
+// Close saves modal on backdrop click
+document.getElementById('saves-modal').addEventListener('click', e => {
+  if (e.target === document.getElementById('saves-modal')) {
+    document.getElementById('saves-modal').classList.remove('open');
+  }
+});
+
+// ── Sidebar section reorder based on active tab ──
+function reorderSidebar(tab) {
+  const sidebar = document.getElementById('sidebar');
+  if (!sidebar) return;
+  const rollLog   = document.getElementById('sb-roll-log');
+  const discard   = document.getElementById('sb-discard');
+  const drawHist  = document.getElementById('sb-draw-history');
+  if (!rollLog || !discard || !drawHist) return;
+  // Remove all, re-append in correct order
+  [rollLog, discard, drawHist].forEach(el => sidebar.removeChild(el));
+  if (tab === 'cards') {
+    // Cards: Discard → Draw History → Roll Log
+    sidebar.appendChild(discard);
+    sidebar.appendChild(drawHist);
+    sidebar.appendChild(rollLog);
+  } else {
+    // Dice: Roll Log → Discard → Draw History
+    sidebar.appendChild(rollLog);
+    sidebar.appendChild(discard);
+    sidebar.appendChild(drawHist);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  MOBILE LOG DRAWER
+// ═══════════════════════════════════════════════════════════
+
+let drawerOpen = false;
+
+function openDrawer() {
+  drawerOpen = true;
+  document.getElementById('log-drawer').classList.add('open');
+  document.getElementById('log-backdrop').classList.add('open');
+  document.getElementById('log-tab-chevron').textContent = '▼';
+  syncDrawerContent();
+}
+
+function closeDrawer() {
+  drawerOpen = false;
+  document.getElementById('log-drawer').classList.remove('open');
+  document.getElementById('log-backdrop').classList.remove('open');
+  document.getElementById('log-tab-chevron').textContent = '▲';
+}
+
+function syncDrawerContent() {
+  // Sync dice log
+  const diceTarget = document.getElementById('drawer-log-list');
+  const diceSrc = document.getElementById('log-list');
+  if (diceTarget && diceSrc) diceTarget.innerHTML = diceSrc.innerHTML;
+
+  // Sync card log
+  const cardTarget = document.getElementById('drawer-card-log-list');
+  const cardSrc = document.getElementById('card-log-list');
+  if (cardTarget && cardSrc) cardTarget.innerHTML = cardSrc.innerHTML;
+
+  // Sync discard
+  const discardTarget = document.getElementById('drawer-discard-list');
+  const discardSrc = document.getElementById('discard-list');
+  if (discardTarget && discardSrc) discardTarget.innerHTML = discardSrc.innerHTML;
+
+  updateLogTabCount();
+}
+
+function updateLogTabCount() {
+  const total = diceLog.length + cardState.cardLog.length;
+  document.getElementById('log-tab-count').textContent = total;
+}
+
+// Drawer tab switching
+document.querySelectorAll('.drawer-tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.drawer-tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const tab = btn.dataset.drawerTab;
+    document.querySelectorAll('.drawer-pane').forEach(p => p.classList.remove('active'));
+    document.getElementById(`drawer-${tab}`).classList.add('active');
+    syncDrawerContent();
+  });
+});
+
+document.getElementById('log-tab').addEventListener('click', () => {
+  drawerOpen ? closeDrawer() : openDrawer();
+});
+document.getElementById('log-backdrop').addEventListener('click', closeDrawer);
+document.getElementById('log-drawer-close').addEventListener('click', closeDrawer);
+
+// Drawer clear buttons mirror the main ones
+document.getElementById('clear-dice-log-drawer-btn').addEventListener('click', () => {
+  diceLog = [];
+  renderDiceLog();
+  syncDrawerContent();
+  saveState();
+});
+
+document.getElementById('clear-card-log-drawer-btn').addEventListener('click', () => {
+  cardState.cardLog = [];
+  renderCardLog();
+  syncDrawerContent();
+  saveState();
+});
+
+// Drawer discard actions mirror main buttons
+document.getElementById('draw-discard-top-drawer-btn').addEventListener('click', () => {
+  drawCard(null, true);
+  syncDrawerContent();
+});
+document.getElementById('reshuffle-discard-drawer-btn').addEventListener('click', () => {
+  openReshuffleModal('discard');
+  syncDrawerContent();
+});
+
+// Patch renderDiceLog and renderCards to also sync drawer if open
+const _origRenderDiceLog = renderDiceLog;
+renderDiceLog = function() {
+  _origRenderDiceLog();
+  updateLogTabCount();
+  if (drawerOpen) syncDrawerContent();
+};
+
+const _origRenderCards = renderCards;
+renderCards = function() {
+  _origRenderCards();
+  updateLogTabCount();
+  if (drawerOpen) syncDrawerContent();
+};
+
+// ═══════════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════════
+
+buildDiceGrid();
+updateRollSummary();
+initDeck('standard');
+loadState();
+renderDicePools();
+reorderSidebar(document.querySelector('.tab-btn.active')?.dataset.tab || 'dice');
+
+// PWA service worker
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>

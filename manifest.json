@@ -1,0 +1,22 @@
+{
+  "name": "The Oracle — Solo RPG Toolkit",
+  "short_name": "The Oracle",
+  "description": "Dice roller and card deck manager for solo RPG play",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0d0608",
+  "theme_color": "#1a0a0a",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}
