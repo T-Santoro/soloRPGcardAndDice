@@ -1,5 +1,10 @@
 const CACHE = 'oracle-v1';
-const ASSETS = ['/', '/index.html', '/manifest.json'];
+const ASSETS = [
+  '/soloRPGcardAndDice/',
+  '/soloRPGcardAndDice/index.html',
+  '/soloRPGcardAndDice/manifest.json',
+  '/soloRPGcardAndDice/icon-192.svg'
+];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)).catch(() => {}));
