@@ -302,9 +302,22 @@ main {
 }
 
 .die-icon {
-  font-size: 2rem;
-  line-height: 1;
-  filter: drop-shadow(0 0 8px currentColor);
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.die-icon img {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  filter: invert(1) brightness(0.65);
+  transition: filter 0.2s;
+}
+.die-selector.selected .die-icon img {
+  filter: invert(1) sepia(0.5) saturate(4) hue-rotate(5deg) brightness(0.88);
+  filter: drop-shadow(0 0 6px rgba(201,151,58,0.6)) invert(1) sepia(0.5) saturate(4) hue-rotate(5deg) brightness(0.88);
 }
 
 .die-label {
@@ -863,6 +876,57 @@ main {
 
 .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
 
+/* ─── ATTRIBUTION ─── */
+#attr-btn {
+  position: fixed;
+  bottom: 12px;
+  right: 14px;
+  z-index: 1000;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1px solid rgba(107,26,42,0.5);
+  background: rgba(13,6,8,0.7);
+  color: var(--ash);
+  font-size: 0.6rem;
+  font-family: 'Cinzel', serif;
+  cursor: default;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  transition: border-color 0.2s, color 0.2s;
+}
+#attr-btn:hover { border-color: var(--gold); color: var(--pale-gold); }
+
+#attr-panel {
+  position: fixed;
+  bottom: 36px;
+  right: 14px;
+  z-index: 1000;
+  background: rgba(13,6,8,0.96);
+  border: 1px solid rgba(107,26,42,0.6);
+  padding: 10px 13px;
+  max-width: 230px;
+  font-family: 'IM Fell English', serif;
+  font-size: 0.65rem;
+  line-height: 1.65;
+  color: var(--fog);
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.15s, transform 0.15s;
+}
+#attr-btn:hover + #attr-panel {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+#attr-panel a { color: var(--gold); text-decoration: none; }
+#attr-panel a:hover { text-decoration: underline; }
+#attr-panel strong { color: var(--pale-gold); display: block; margin-top: 6px; }
+#attr-panel strong:first-child { margin-top: 0; }
+
 /* Toast */
 #toast {
   position: fixed;
@@ -926,6 +990,49 @@ main {
   text-transform: uppercase;
 }
 
+/* ─── PLAYING CARD SPRITE ─── */
+.card-sprite {
+  width: 120px;
+  height: 164px;
+  background-repeat: no-repeat;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.5), 0 0 0 1px rgba(201,151,58,0.3);
+  animation: cardDraw 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  flex-shrink: 0;
+  border-radius: 4px;
+}
+.card-back-img {
+  width: 120px;
+  height: 164px;
+  object-fit: fill;
+  border-radius: 4px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+  flex-shrink: 0;
+  animation: cardDraw 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ─── TAROT IMAGE ─── */
+.tarot-img-wrap {
+  position: relative;
+  flex-shrink: 0;
+  width: 100px;
+  height: 176px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.5), 0 0 20px rgba(201,151,58,0.15);
+  border: 1px solid var(--gold);
+  border-radius: 4px;
+  overflow: hidden;
+  animation: cardDraw 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.tarot-img-wrap.reversed {
+  transform: rotate(180deg);
+  box-shadow: 0 -8px 30px rgba(0,0,0,0.5), 0 0 20px rgba(139,38,53,0.3);
+}
+.tarot-img-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  display: block;
+}
+
 /* Scrollbar global */
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
@@ -953,7 +1060,8 @@ main {
   /* ── Dice grid: 4 columns on mobile ── */
   .dice-grid { grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 14px; }
   .die-selector { padding: 10px 4px; gap: 5px; }
-  .die-icon { font-size: 1.4rem; }
+  .die-icon { width: 36px; height: 36px; }
+  .die-icon img { width: 32px; height: 32px; }
   .die-label { font-size: 0.6rem; }
   .die-count-btn { width: 18px; height: 18px; font-size: 0.75rem; }
   .die-count { font-size: 0.75rem; }
@@ -1960,6 +2068,15 @@ main {
   </div>
 </div>
 
+<div id="attr-btn">i</div>
+<div id="attr-panel">
+  <strong>Dice</strong>
+  <a href="https://thenounproject.com/browse/collection-icon/polyhedral-dice-73191/" target="_blank">Polyhedral Dice</a> by Lonnie Tapscott — Noun Project
+  <strong>Playing Cards</strong>
+  <a href="https://opengameart.org/content/playing-cards-5" target="_blank">Playing Cards</a> by Aidan Walker — CC0
+  <strong>Tarot</strong>
+  Rider-Waite-Smith deck, scanned &amp; cleaned by <a href="https://luciellaes.itch.io/rider-waite-smith-tarot-cards-cc0" target="_blank">luciellaes</a> — CC0
+</div>
 <div id="toast"></div>
 
 <script>
@@ -1968,13 +2085,13 @@ main {
 // ═══════════════════════════════════════════════════════════
 
 const DICE = [
-  { sides: 20, icon: '🎲', symbol: 'D20', color: '#c4562a' },
-  { sides: 12, icon: '🔷', symbol: 'D12', color: '#8b2635' },
-  { sides: 10, icon: '🔶', symbol: 'D10', color: '#6b1a2a' },
-  { sides: 8,  icon: '💠', symbol: 'D8',  color: '#5a4a1a' },
-  { sides: 6,  icon: '⚅',  symbol: 'D6',  color: '#3a5a1a' },
-  { sides: 4,  icon: '🔺', symbol: 'D4',  color: '#1a3a5a' },
-  { sides: 100, icon: '💯', symbol: 'D100', color: '#4a1a5a' },
+  { sides: 20,  icon: 'assets/d20.png', symbol: 'D20',  color: '#c4562a' },
+  { sides: 12,  icon: 'assets/d12.png', symbol: 'D12',  color: '#8b2635' },
+  { sides: 10,  icon: 'assets/d10.png', symbol: 'D10',  color: '#6b1a2a' },
+  { sides: 8,   icon: 'assets/d8.png',  symbol: 'D8',   color: '#5a4a1a' },
+  { sides: 6,   icon: 'assets/d6.png',  symbol: 'D6',   color: '#3a5a1a' },
+  { sides: 4,   icon: 'assets/d4.png',  symbol: 'D4',   color: '#1a3a5a' },
+  { sides: 100, icon: 'assets/d10.png', symbol: 'D100', color: '#4a1a5a' },
 ];
 
 const diceState = {};
@@ -1991,7 +2108,7 @@ function buildDiceGrid() {
     el.className = 'die-selector';
     el.dataset.sides = d.sides;
     el.innerHTML = `
-      <div class="die-icon" style="color:${d.color}">${d.icon}</div>
+      <div class="die-icon"><img src="${d.icon}" alt="${d.symbol}" draggable="false"></div>
       <div class="die-label">${d.symbol}</div>
       <div class="die-count-wrap">
         <button class="die-count-btn" data-action="dec" data-sides="${d.sides}">−</button>
@@ -2131,30 +2248,42 @@ const RED_SUITS = new Set(['♥','♦']);
 const VALUES = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
 const VALUE_NAMES = { A:'Ace', J:'Jack', Q:'Queen', K:'King' };
 
+// Card sprite helpers (OpenGameArt deck — 207×282px per card, 13 cards per row)
+const SUIT_FILE = { '♠':'cards_spades','♥':'cards_hearts','♦':'cards_diamonds','♣':'cards_clubs' };
+const VAL_IDX   = { A:0,2:1,3:2,4:3,5:4,6:5,7:6,8:7,9:8,10:9,J:10,Q:11,K:12 };
+const CARD_DISPLAY_W = 120, CARD_DISPLAY_H = 164;
+const SPRITE_SCALE_W  = 13 * CARD_DISPLAY_W; // 1560px
+
+function cardSpriteStyle(suit, val) {
+  const file  = SUIT_FILE[suit];
+  const idx   = VAL_IDX[val] ?? 0;
+  return `background-image:url('assets/${file}.png');background-size:${SPRITE_SCALE_W}px ${CARD_DISPLAY_H}px;background-position:-${idx * CARD_DISPLAY_W}px 0;`;
+}
+
 // Tarot deck (Major + Minor Arcana)
 const MAJOR_ARCANA = [
-  { num: 0, name: 'The Fool', sym: '🃏', meaning: 'New beginnings, innocence, spontaneity' },
-  { num: 1, name: 'The Magician', sym: '🔮', meaning: 'Willpower, desire, manifestation' },
-  { num: 2, name: 'The High Priestess', sym: '🌙', meaning: 'Intuition, mystery, the subconscious' },
-  { num: 3, name: 'The Empress', sym: '🌿', meaning: 'Femininity, beauty, nature, abundance' },
-  { num: 4, name: 'The Emperor', sym: '👑', meaning: 'Authority, structure, control, fatherhood' },
-  { num: 5, name: 'The Hierophant', sym: '⛪', meaning: 'Tradition, conformity, spiritual wisdom' },
-  { num: 6, name: 'The Lovers', sym: '💞', meaning: 'Love, harmony, choices, alignment' },
-  { num: 7, name: 'The Chariot', sym: '⚔️', meaning: 'Control, willpower, victory, assertion' },
-  { num: 8, name: 'Strength', sym: '🦁', meaning: 'Courage, patience, control, compassion' },
-  { num: 9, name: 'The Hermit', sym: '🕯️', meaning: 'Soul searching, introspection, inner guidance' },
-  { num: 10, name: 'Wheel of Fortune', sym: '☸️', meaning: 'Good luck, karma, destiny, a turning point' },
-  { num: 11, name: 'Justice', sym: '⚖️', meaning: 'Justice, fairness, truth, cause and effect' },
-  { num: 12, name: 'The Hanged Man', sym: '🔄', meaning: 'Suspension, restriction, letting go' },
-  { num: 13, name: 'Death', sym: '💀', meaning: 'Endings, beginnings, change, transformation' },
-  { num: 14, name: 'Temperance', sym: '✨', meaning: 'Balance, moderation, patience, purpose' },
-  { num: 15, name: 'The Devil', sym: '🔗', meaning: 'Addiction, materialism, sexuality, bondage' },
-  { num: 16, name: 'The Tower', sym: '🗼', meaning: 'Sudden change, upheaval, chaos, revelation' },
-  { num: 17, name: 'The Star', sym: '⭐', meaning: 'Hope, faith, purpose, renewal' },
-  { num: 18, name: 'The Moon', sym: '🌕', meaning: 'Illusion, fear, unconscious, confusion' },
-  { num: 19, name: 'The Sun', sym: '☀️', meaning: 'Positivity, fun, warmth, success' },
-  { num: 20, name: 'Judgement', sym: '🔔', meaning: 'Reflection, reckoning, awakening' },
-  { num: 21, name: 'The World', sym: '🌍', meaning: 'Completion, integration, accomplishment' },
+  { num:  0, name: 'The Fool',          file: 'TheFool',          sym: '🃏', meaning: 'New beginnings, innocence, spontaneity' },
+  { num:  1, name: 'The Magician',      file: 'TheMagician',      sym: '🔮', meaning: 'Willpower, desire, manifestation' },
+  { num:  2, name: 'The High Priestess',file: 'TheHighPriestess', sym: '🌙', meaning: 'Intuition, mystery, the subconscious' },
+  { num:  3, name: 'The Empress',       file: 'TheEmpress',       sym: '🌿', meaning: 'Femininity, beauty, nature, abundance' },
+  { num:  4, name: 'The Emperor',       file: 'TheEmperor',       sym: '👑', meaning: 'Authority, structure, control, fatherhood' },
+  { num:  5, name: 'The Hierophant',    file: 'TheHierophant',    sym: '⛪', meaning: 'Tradition, conformity, spiritual wisdom' },
+  { num:  6, name: 'The Lovers',        file: 'TheLovers',        sym: '💞', meaning: 'Love, harmony, choices, alignment' },
+  { num:  7, name: 'The Chariot',       file: 'TheChariot',       sym: '⚔️', meaning: 'Control, willpower, victory, assertion' },
+  { num:  8, name: 'Strength',          file: 'Strength',         sym: '🦁', meaning: 'Courage, patience, control, compassion' },
+  { num:  9, name: 'The Hermit',        file: 'TheHermit',        sym: '🕯️', meaning: 'Soul searching, introspection, inner guidance' },
+  { num: 10, name: 'Wheel of Fortune',  file: 'WheelOfFortune',   sym: '☸️', meaning: 'Good luck, karma, destiny, a turning point' },
+  { num: 11, name: 'Justice',           file: 'Justice',          sym: '⚖️', meaning: 'Justice, fairness, truth, cause and effect' },
+  { num: 12, name: 'The Hanged Man',    file: 'TheHangedMan',     sym: '🔄', meaning: 'Suspension, restriction, letting go' },
+  { num: 13, name: 'Death',             file: 'Death',            sym: '💀', meaning: 'Endings, beginnings, change, transformation' },
+  { num: 14, name: 'Temperance',        file: 'Temperance',       sym: '✨', meaning: 'Balance, moderation, patience, purpose' },
+  { num: 15, name: 'The Devil',         file: 'TheDevil',         sym: '🔗', meaning: 'Addiction, materialism, sexuality, bondage' },
+  { num: 16, name: 'The Tower',         file: 'TheTower',         sym: '🗼', meaning: 'Sudden change, upheaval, chaos, revelation' },
+  { num: 17, name: 'The Star',          file: 'TheStar',          sym: '⭐', meaning: 'Hope, faith, purpose, renewal' },
+  { num: 18, name: 'The Moon',          file: 'TheMoon',          sym: '🌕', meaning: 'Illusion, fear, unconscious, confusion' },
+  { num: 19, name: 'The Sun',           file: 'TheSun',           sym: '☀️', meaning: 'Positivity, fun, warmth, success' },
+  { num: 20, name: 'Judgement',         file: 'Judgement',        sym: '🔔', meaning: 'Reflection, reckoning, awakening' },
+  { num: 21, name: 'The World',         file: 'TheWorld',         sym: '🌍', meaning: 'Completion, integration, accomplishment' },
 ];
 
 const TAROT_SUITS = ['Wands','Cups','Swords','Pentacles'];
@@ -2182,7 +2311,7 @@ function buildStandardDeck() {
 function buildTarotDeck() {
   const cards = [];
   MAJOR_ARCANA.forEach(c => {
-    cards.push({ type: 'major', name: c.name, id: `MA${c.num}`, num: c.num, sym: c.sym, meaning: c.meaning });
+    cards.push({ type: 'major', name: c.name, id: `MA${c.num}`, num: c.num, file: c.file, sym: c.sym, meaning: c.meaning });
   });
   TAROT_SUITS.forEach(suit => {
     const sym = TAROT_SUIT_SYMS[suit];
@@ -2244,51 +2373,40 @@ function renderCardDisplay(card) {
   let infoHtml = '';
 
   if (card.type === 'standard') {
-    const cls = card.red ? 'red' : 'black';
-    cardHtml = `
-      <div class="playing-card ${cls}">
-        <div class="card-corner tl">${card.val}<br>${card.suit}</div>
-        <div class="card-center-symbol">${card.suit}</div>
-        <div class="card-corner br">${card.val}<br>${card.suit}</div>
-      </div>`;
-    infoHtml = `
-      <div class="current-card-name">${card.name}</div>`;
+    const sStyle = cardSpriteStyle(card.suit, card.val);
+    cardHtml = `<div class="card-sprite" style="${sStyle}"></div>`;
+    infoHtml = `<div class="current-card-name">${card.name}</div>`;
   } else if (card.type === 'joker') {
-    cardHtml = `
-      <div class="playing-card joker">
-        <div class="card-corner tl">J</div>
-        <div class="card-center-symbol">🃏</div>
-        <div class="card-corner br">J</div>
-      </div>`;
+    const jFile = card.red ? 'cards_hearts' : 'cards_spades';
+    // Show back-of-deck image for joker (no individual joker sprite in this pack)
+    cardHtml = `<img class="card-back-img" src="assets/cards_back.png" alt="${card.name}">`;
     infoHtml = `<div class="current-card-name">${card.name}</div>`;
   } else if (card.type === 'major') {
     const rev = card.reversed ? 'reversed' : '';
-    cardHtml = `
-      <div class="tarot-card ${rev}">
-        <div class="tarot-number">${card.num === 0 ? '0' : card.num}</div>
-        <div class="tarot-symbol">${card.sym}</div>
-        <div class="tarot-name">${card.name}</div>
-      </div>`;
+    const numStr = String(card.num).padStart(2,'0');
+    // Resolve file from MAJOR_ARCANA lookup in case card was saved before 'file' was added
+    const majorFile = card.file || (MAJOR_ARCANA.find(m => m.num === card.num) || {}).file || card.name.replace(/\s+/g,'');
+    const imgSrc = `assets/tarot/${numStr}-${majorFile}.jpg`;
+    cardHtml = `<div class="tarot-img-wrap ${rev}"><img src="${imgSrc}" alt="${card.name}"></div>`;
     infoHtml = `
       <div class="current-card-name">${card.name}${card.reversed ? ' ✦ Reversed' : ''}</div>
       <div class="current-card-sub">Major Arcana · ${card.num}</div>
       <div class="current-card-meaning">${card.reversed ? '(Reversed) ' : ''}${card.meaning}</div>`;
   } else if (card.type === 'minor') {
     const rev = card.reversed ? 'reversed' : '';
-    cardHtml = `
-      <div class="tarot-card ${rev}">
-        <div class="tarot-number">${card.suit}</div>
-        <div class="tarot-symbol">${card.sym}</div>
-        <div class="tarot-name">${card.name}</div>
-      </div>`;
+    const valStr = String(card.val).padStart(2,'0');
+    const imgSrc = `assets/tarot/${card.suit}${valStr}.jpg`;
+    cardHtml = `<div class="tarot-img-wrap ${rev}"><img src="${imgSrc}" alt="${card.name}"></div>`;
     infoHtml = `
       <div class="current-card-name">${card.name}${card.reversed ? ' ✦ Reversed' : ''}</div>
       <div class="current-card-sub">Minor Arcana · ${card.suit}</div>
       <div class="current-card-meaning">${card.reversed ? '(Reversed) ' : ''}${card.meaning || ''}</div>`;
   }
 
+  const isTarot = card.type === 'major' || card.type === 'minor';
+  const backSrc  = isTarot ? 'assets/tarot/CardBacks.jpg' : 'assets/cards_back.png';
   wrap.innerHTML = `
-    <div class="card-back"><div class="card-back-pattern">✦</div></div>
+    <img class="card-back-img" src="${backSrc}" alt="Card back">
     ${cardHtml}
     <div class="current-card-info">${infoHtml}</div>
   `;
@@ -2317,7 +2435,8 @@ function drawCard(fromStack = null, fromDiscard = false, discardIndex = null) {
     source = stack.name;
   }
 
-  if (cardState.deckType === 'tarot') {
+  // Only assign a new orientation when drawing from the deck, not from discard
+  if (cardState.deckType === 'tarot' && !fromDiscard) {
     card = { ...card, reversed: Math.random() < 0.5 };
   }
 
@@ -2410,8 +2529,8 @@ function renderDiscard() {
   list.innerHTML = items.map((card, i) => {
     const realIdx = cardState.discard.length - 1 - i;
     return `
-      <div class="discard-item" title="${card.name}">
-        <span><span class="discard-item-symbol">${cardSymbol(card)}</span>${card.name}</span>
+      <div class="discard-item" title="${card.name}${card.reversed ? ' (Reversed)' : ''}">
+        <span><span class="discard-item-symbol">${cardSymbol(card)}</span>${card.name}${card.reversed ? ' <span style="color:var(--ash);font-size:0.68em;font-style:italic;">Rev.</span>' : ''}</span>
         <button class="take-from-discard" onclick="drawCard(null, true, ${realIdx})">Take</button>
       </div>
     `;
@@ -2426,7 +2545,7 @@ function renderCardLog() {
   }
   list.innerHTML = cardState.cardLog.slice(0, 60).map(e => `
     <div class="discard-item">
-      <span><span class="discard-item-symbol">${cardSymbol(e.card)}</span>${e.card.name}</span>
+      <span><span class="discard-item-symbol">${cardSymbol(e.card)}</span>${e.card.name}${e.card.reversed ? ' <span style="color:var(--ash);font-size:0.68em;font-style:italic;">Rev.</span>' : ''}</span>
       <span style="color:var(--ash); font-size:0.6rem;">${e.time}</span>
     </div>
   `).join('');
@@ -2885,7 +3004,7 @@ function buildCustomCards() {
   } else {
     MAJOR_ARCANA.forEach(c => {
       if (!customizerState.tarot_major.has(c.num)) return;
-      cards.push({ type: 'major', name: c.name, id: `MA${c.num}`, num: c.num, sym: c.sym, meaning: c.meaning });
+      cards.push({ type: 'major', name: c.name, id: `MA${c.num}`, num: c.num, file: c.file, sym: c.sym, meaning: c.meaning });
     });
     TAROT_SUITS.forEach(suit => {
       if (!customizerState.tarot_suits.has(suit)) return;
