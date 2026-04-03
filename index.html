@@ -256,6 +256,14 @@ main {
   color: var(--pale-gold);
 }
 
+.log-rolls {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.6rem;
+  color: var(--ash);
+  margin-top: 2px;
+  letter-spacing: 0.02em;
+}
+
 .log-entry.critical .log-result { color: #ff6b6b; }
 .log-entry.max-roll .log-result { color: #7eff7a; }
 .log-entry.card-draw { border-left: 2px solid var(--gold); }
@@ -672,6 +680,7 @@ main {
   max-width: 180px;
   line-height: 1.5;
   font-style: italic;
+  text-align: center;
 }
 
 /* Deck stacks area */
@@ -1010,6 +1019,91 @@ main {
   animation: cardDraw 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
+/* ─── CSS CARD BACKS ─── */
+.css-card-back {
+  border-radius: 4px;
+  flex-shrink: 0;
+  animation: cardDraw 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Standard deck back — 120×164, matches card sprite size */
+.css-card-back--standard {
+  width: 120px;
+  height: 164px;
+  background-color: #1e0810;
+  background-image:
+    repeating-linear-gradient(45deg,  rgba(201,151,58,0.13) 0, rgba(201,151,58,0.13) 1px, transparent 0, transparent 50%),
+    repeating-linear-gradient(135deg, rgba(201,151,58,0.13) 0, rgba(201,151,58,0.13) 1px, transparent 0, transparent 50%),
+    linear-gradient(150deg, #2d0e1a 0%, #170710 40%, #2a0e1a 100%);
+  background-size: 14px 14px, 14px 14px, 100% 100%;
+  border: 2px solid var(--gold);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.55), inset 0 0 18px rgba(0,0,0,0.4);
+}
+
+/* Tarot deck back — 100×176, matches tarot image size */
+.css-card-back--tarot {
+  width: 100px;
+  height: 176px;
+  background-color: #0d0608;
+  background-image:
+    radial-gradient(ellipse 60% 70% at 50% 50%,
+      rgba(201,151,58,0.22) 0%,
+      rgba(201,151,58,0.06) 28%,
+      transparent 45%,
+      rgba(201,151,58,0.07) 52%,
+      transparent 62%,
+      rgba(201,151,58,0.04) 68%,
+      transparent 78%
+    ),
+    linear-gradient(160deg, #130508 0%, #200a12 45%, #130508 100%);
+  border: 1px solid rgba(201,151,58,0.65);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.55), 0 0 0 1px rgba(201,151,58,0.2), inset 0 0 16px rgba(0,0,0,0.5);
+}
+
+/* Inner inset frame */
+.css-cb-frame {
+  position: absolute;
+  inset: 7px;
+  border: 1px solid rgba(201,151,58,0.28);
+  border-radius: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.css-card-back--tarot .css-cb-frame {
+  inset: 6px;
+  border-color: rgba(201,151,58,0.32);
+}
+
+/* Corner pip ornaments */
+.css-cb-frame::before,
+.css-cb-frame::after {
+  content: '♦';
+  position: absolute;
+  font-size: 0.5rem;
+  color: rgba(201,151,58,0.35);
+  line-height: 1;
+}
+.css-cb-frame::before { top: 3px;    left:  4px;  }
+.css-cb-frame::after  { bottom: 3px; right: 4px; transform: rotate(180deg); }
+
+/* Central ornament */
+.css-cb-center {
+  font-size: 1.35rem;
+  color: rgba(201,151,58,0.32);
+  line-height: 1;
+  user-select: none;
+}
+.css-card-back--tarot .css-cb-center {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: 1.5rem;
+  color: rgba(201,151,58,0.35);
+}
+
 /* ─── TAROT IMAGE ─── */
 .tarot-img-wrap {
   position: relative;
@@ -1087,7 +1181,8 @@ main {
     min-height: 0;
   }
   /* Hide the decorative card back on mobile to save space */
-  .current-card-wrap .card-back { display: none; }
+  .current-card-wrap .card-back,
+  .current-card-wrap .css-card-back { display: none; }
   /* Scale down cards */
   .playing-card { width: 90px; height: 126px; font-size: 1.8rem; }
   .card-corner { font-size: 0.65rem; }
@@ -2091,7 +2186,7 @@ const DICE = [
   { sides: 8,   icon: 'assets/d8.png',  symbol: 'D8',   color: '#5a4a1a' },
   { sides: 6,   icon: 'assets/d6.png',  symbol: 'D6',   color: '#3a5a1a' },
   { sides: 4,   icon: 'assets/d4.png',  symbol: 'D4',   color: '#1a3a5a' },
-  { sides: 100, icon: 'assets/d10.png', symbol: 'D100', color: '#4a1a5a' },
+  { sides: 100, icon: 'assets/d10.png',  symbol: 'D100', color: '#4a1a5a' },
 ];
 
 const diceState = {};
@@ -2229,13 +2324,18 @@ function renderDiceLog() {
     list.innerHTML = '<div style="padding:20px 16px; color:var(--crimson); font-style:italic; font-size:0.75rem; text-align:center;">Your rolls will appear here…</div>';
     return;
   }
-  list.innerHTML = diceLog.slice(0, 80).map(e => `
+  list.innerHTML = diceLog.slice(0, 80).map(e => {
+    const showIndividual = e.rolls && e.rolls.length > 1;
+    const rollsStr = showIndividual ? e.rolls.map(r => r.r).join(' · ') : '';
+    return `
     <div class="log-entry ${e.isCrit ? 'critical' : ''} ${e.isMax ? 'max-roll' : ''}">
       <div class="log-time">${e.time}</div>
       <div class="log-desc">${e.desc}</div>
       <div class="log-result">${e.total}</div>
+      ${showIndividual ? `<div class="log-rolls">[${rollsStr}]</div>` : ''}
     </div>
-  `).join('');
+  `;
+  }).join('');
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -2262,28 +2362,28 @@ function cardSpriteStyle(suit, val) {
 
 // Tarot deck (Major + Minor Arcana)
 const MAJOR_ARCANA = [
-  { num:  0, name: 'The Fool',          file: 'TheFool',          sym: '🃏', meaning: 'New beginnings, innocence, spontaneity' },
-  { num:  1, name: 'The Magician',      file: 'TheMagician',      sym: '🔮', meaning: 'Willpower, desire, manifestation' },
-  { num:  2, name: 'The High Priestess',file: 'TheHighPriestess', sym: '🌙', meaning: 'Intuition, mystery, the subconscious' },
-  { num:  3, name: 'The Empress',       file: 'TheEmpress',       sym: '🌿', meaning: 'Femininity, beauty, nature, abundance' },
-  { num:  4, name: 'The Emperor',       file: 'TheEmperor',       sym: '👑', meaning: 'Authority, structure, control, fatherhood' },
-  { num:  5, name: 'The Hierophant',    file: 'TheHierophant',    sym: '⛪', meaning: 'Tradition, conformity, spiritual wisdom' },
-  { num:  6, name: 'The Lovers',        file: 'TheLovers',        sym: '💞', meaning: 'Love, harmony, choices, alignment' },
-  { num:  7, name: 'The Chariot',       file: 'TheChariot',       sym: '⚔️', meaning: 'Control, willpower, victory, assertion' },
-  { num:  8, name: 'Strength',          file: 'Strength',         sym: '🦁', meaning: 'Courage, patience, control, compassion' },
-  { num:  9, name: 'The Hermit',        file: 'TheHermit',        sym: '🕯️', meaning: 'Soul searching, introspection, inner guidance' },
-  { num: 10, name: 'Wheel of Fortune',  file: 'WheelOfFortune',   sym: '☸️', meaning: 'Good luck, karma, destiny, a turning point' },
-  { num: 11, name: 'Justice',           file: 'Justice',          sym: '⚖️', meaning: 'Justice, fairness, truth, cause and effect' },
-  { num: 12, name: 'The Hanged Man',    file: 'TheHangedMan',     sym: '🔄', meaning: 'Suspension, restriction, letting go' },
-  { num: 13, name: 'Death',             file: 'Death',            sym: '💀', meaning: 'Endings, beginnings, change, transformation' },
-  { num: 14, name: 'Temperance',        file: 'Temperance',       sym: '✨', meaning: 'Balance, moderation, patience, purpose' },
-  { num: 15, name: 'The Devil',         file: 'TheDevil',         sym: '🔗', meaning: 'Addiction, materialism, sexuality, bondage' },
-  { num: 16, name: 'The Tower',         file: 'TheTower',         sym: '🗼', meaning: 'Sudden change, upheaval, chaos, revelation' },
-  { num: 17, name: 'The Star',          file: 'TheStar',          sym: '⭐', meaning: 'Hope, faith, purpose, renewal' },
-  { num: 18, name: 'The Moon',          file: 'TheMoon',          sym: '🌕', meaning: 'Illusion, fear, unconscious, confusion' },
-  { num: 19, name: 'The Sun',           file: 'TheSun',           sym: '☀️', meaning: 'Positivity, fun, warmth, success' },
-  { num: 20, name: 'Judgement',         file: 'Judgement',        sym: '🔔', meaning: 'Reflection, reckoning, awakening' },
-  { num: 21, name: 'The World',         file: 'TheWorld',         sym: '🌍', meaning: 'Completion, integration, accomplishment' },
+  { num:  0, name: 'The Fool',          file: 'TheFool',          sym: '🃏', meaning: 'New beginnings, innocence, spontaneity',              reversedMeaning: 'Recklessness, naivety, poor judgment, taking unnecessary risks' },
+  { num:  1, name: 'The Magician',      file: 'TheMagician',      sym: '🔮', meaning: 'Willpower, desire, manifestation',                    reversedMeaning: 'Manipulation, poor planning, untapped talents, trickery' },
+  { num:  2, name: 'The High Priestess',file: 'TheHighPriestess', sym: '🌙', meaning: 'Intuition, mystery, the subconscious',                reversedMeaning: 'Secrets, disconnection from intuition, information withheld' },
+  { num:  3, name: 'The Empress',       file: 'TheEmpress',       sym: '🌿', meaning: 'Femininity, beauty, nature, abundance',               reversedMeaning: 'Dependence, smothering, creative block, neglect of self' },
+  { num:  4, name: 'The Emperor',       file: 'TheEmperor',       sym: '👑', meaning: 'Authority, structure, control, fatherhood',           reversedMeaning: 'Domination, rigidity, loss of control, stubbornness' },
+  { num:  5, name: 'The Hierophant',    file: 'TheHierophant',    sym: '⛪', meaning: 'Tradition, conformity, spiritual wisdom',             reversedMeaning: 'Rebellion, subversion, challenging tradition, nonconformity' },
+  { num:  6, name: 'The Lovers',        file: 'TheLovers',        sym: '💞', meaning: 'Love, harmony, choices, alignment',                   reversedMeaning: 'Disharmony, imbalance, misaligned values, poor choices' },
+  { num:  7, name: 'The Chariot',       file: 'TheChariot',       sym: '⚔️', meaning: 'Control, willpower, victory, assertion',              reversedMeaning: 'Lack of direction, aggression, defeat, out of control' },
+  { num:  8, name: 'Strength',          file: 'Strength',         sym: '🦁', meaning: 'Courage, patience, control, compassion',              reversedMeaning: 'Weakness, self-doubt, lack of confidence, cowardice' },
+  { num:  9, name: 'The Hermit',        file: 'TheHermit',        sym: '🕯️', meaning: 'Soul searching, introspection, inner guidance',       reversedMeaning: 'Isolation, loneliness, withdrawal, feeling lost' },
+  { num: 10, name: 'Wheel of Fortune',  file: 'WheelOfFortune',   sym: '☸️', meaning: 'Good luck, karma, destiny, a turning point',         reversedMeaning: 'Bad luck, resistance to change, breaking cycle, setbacks' },
+  { num: 11, name: 'Justice',           file: 'Justice',          sym: '⚖️', meaning: 'Justice, fairness, truth, cause and effect',          reversedMeaning: 'Unfairness, lack of accountability, dishonesty, bias' },
+  { num: 12, name: 'The Hanged Man',    file: 'TheHangedMan',     sym: '🔄', meaning: 'Suspension, restriction, letting go',                 reversedMeaning: 'Stalling, needless sacrifice, fear of change, martyrdom' },
+  { num: 13, name: 'Death',             file: 'Death',            sym: '💀', meaning: 'Endings, beginnings, change, transformation',         reversedMeaning: 'Resistance to change, personal stagnation, clinging to the past' },
+  { num: 14, name: 'Temperance',        file: 'Temperance',       sym: '✨', meaning: 'Balance, moderation, patience, purpose',              reversedMeaning: 'Imbalance, excess, lack of long-term vision, clashing' },
+  { num: 15, name: 'The Devil',         file: 'TheDevil',         sym: '🔗', meaning: 'Addiction, materialism, sexuality, bondage',          reversedMeaning: 'Freedom, release, restoring control, overcoming addiction' },
+  { num: 16, name: 'The Tower',         file: 'TheTower',         sym: '🗼', meaning: 'Sudden change, upheaval, chaos, revelation',          reversedMeaning: 'Disaster avoided, delayed upheaval, fear of change, narrowly escaping' },
+  { num: 17, name: 'The Star',          file: 'TheStar',          sym: '⭐', meaning: 'Hope, faith, purpose, renewal',                       reversedMeaning: 'Lack of faith, despair, discouragement, disconnection' },
+  { num: 18, name: 'The Moon',          file: 'TheMoon',          sym: '🌕', meaning: 'Illusion, fear, unconscious, confusion',              reversedMeaning: 'Release of fear, repressed emotions surfacing, inner confusion' },
+  { num: 19, name: 'The Sun',           file: 'TheSun',           sym: '☀️', meaning: 'Positivity, fun, warmth, success',                    reversedMeaning: 'Blocked happiness, overconfidence, pessimism, temporary setbacks' },
+  { num: 20, name: 'Judgement',         file: 'Judgement',        sym: '🔔', meaning: 'Reflection, reckoning, awakening',                   reversedMeaning: 'Self-doubt, refusal of self-examination, missed opportunity' },
+  { num: 21, name: 'The World',         file: 'TheWorld',         sym: '🌍', meaning: 'Completion, integration, accomplishment',             reversedMeaning: 'Incompleteness, seeking closure, falling short of a goal' },
 ];
 
 const TAROT_SUITS = ['Wands','Cups','Swords','Pentacles'];
@@ -2293,6 +2393,78 @@ const TAROT_MEANINGS = {
   Cups: 'water, emotion, intuition',
   Swords: 'air, intellect, conflict',
   Pentacles: 'earth, wealth, material'
+};
+
+// Per-card meanings for all 56 minor arcana (index 1–14 per suit)
+const MINOR_ARCANA_MEANINGS = {
+  Wands: [
+    null, // index 0 unused
+    { upright: 'Inspiration, new opportunities, creative spark, potential',        reversed: 'Delays, creative blocks, lack of motivation, missed spark' },
+    { upright: 'Planning, future vision, discovery, bold ambition',                reversed: 'Lack of planning, fear of the unknown, poor decisions' },
+    { upright: 'Progress, expansion, foresight, overseas opportunity',             reversed: 'Delays, frustration, setbacks to plans, lack of growth' },
+    { upright: 'Celebration, harmony, homecoming, milestone reached',              reversed: 'Instability at home, conflict, disrupted celebration' },
+    { upright: 'Competition, conflict, disagreement, diversity of opinion',        reversed: 'Conflict avoidance, inner conflict, finding resolution' },
+    { upright: 'Victory, public recognition, success, confidence',                 reversed: 'Egotism, fall from grace, self-doubt, lack of recognition' },
+    { upright: 'Perseverance, defensiveness, standing firm, holding ground',       reversed: 'Overwhelm, giving up, feeling threatened, burnout' },
+    { upright: 'Swift action, rapid change, movement, exciting news',              reversed: 'Delays, frustration, slowed momentum, miscommunication' },
+    { upright: 'Resilience, grit, last stand, perseverance under pressure',        reversed: 'Exhaustion, giving up, paranoia, feeling besieged' },
+    { upright: 'Burden, extra responsibility, hard work, nearing completion',      reversed: 'Releasing burden, delegating, overwhelmed, unable to let go' },
+    { upright: 'Enthusiasm, exploration, discovery, free spirit',                  reversed: 'Lack of direction, immaturity, impulsiveness, scattered energy' },
+    { upright: 'Energy, passion, fearlessness, adventure, bold pursuit',           reversed: 'Recklessness, scattered energy, impulsive action, impatience' },
+    { upright: 'Courage, confidence, independence, social magnetism',              reversed: 'Selfishness, jealousy, insecurity, demanding behavior' },
+    { upright: 'Natural leadership, vision, entrepreneurial spirit, honor',        reversed: 'Impulsiveness, tyranny, arrogance, volatile temper' },
+  ],
+  Cups: [
+    null,
+    { upright: 'New love, emotional beginnings, intuition, spiritual awakening',   reversed: 'Emotional blockage, repressed feelings, emptiness, inner void' },
+    { upright: 'Partnership, unity, attraction, mutual respect',                   reversed: 'Disharmony, imbalance, tension in relationship, poor communication' },
+    { upright: 'Celebration, friendship, community, joy, abundance',               reversed: 'Overindulgence, social isolation, gossip, cancelled plans' },
+    { upright: 'Apathy, contemplation, disconnection, reevaluation',               reversed: 'Sudden awareness, new perspective, seizing opportunity' },
+    { upright: 'Loss, grief, disappointment, focusing on what is gone',            reversed: 'Recovery, moving on, acceptance, finding hope after sorrow' },
+    { upright: 'Nostalgia, childhood, innocence, revisiting the past',             reversed: 'Living in the past, unrealistic idealism, naivety, stuck' },
+    { upright: 'Fantasy, illusion, wishful thinking, many choices',                reversed: 'Clarity, cutting through illusion, focus, decisive action' },
+    { upright: 'Walking away, disillusionment, seeking deeper truth',              reversed: 'Fear of change, avoidance, staying in unfulfilling situations' },
+    { upright: 'Contentment, satisfaction, wish fulfillment, gratitude',           reversed: 'Overindulgence, dissatisfaction despite success, smugness' },
+    { upright: 'Harmony, family, fulfillment, divine love, lasting happiness',     reversed: 'Dysfunction, broken home, misaligned values, disharmony' },
+    { upright: 'Creativity, intuition, sensitivity, new emotional messages',       reversed: 'Emotional immaturity, creative blocks, bad news, moodiness' },
+    { upright: 'Romance, charm, following the heart, imagination, idealism',       reversed: 'Moodiness, unrealistic expectations, manipulation, deception' },
+    { upright: 'Compassion, empathy, emotional security, nurturing care',          reversed: 'Emotional insecurity, martyrdom, manipulation, co-dependency' },
+    { upright: 'Emotional balance, wisdom, diplomacy, compassionate leadership',   reversed: 'Emotional manipulation, volatility, moodiness, cold detachment' },
+  ],
+  Swords: [
+    null,
+    { upright: 'Clarity, breakthrough, new ideas, cutting through confusion',      reversed: 'Confusion, chaos, clouded judgment, poor communication' },
+    { upright: 'Difficult choices, indecision, stalemate, blocked emotions',       reversed: 'Indecision, confusion, information overload, paralysis' },
+    { upright: 'Heartbreak, grief, sorrow, painful but necessary truth',           reversed: 'Recovery, forgiveness, healing, moving past pain' },
+    { upright: 'Rest, recuperation, contemplation, peaceful retreat',              reversed: 'Restlessness, burnout, forced recovery, refusal to rest' },
+    { upright: 'Conflict, defeat, win at all costs, self-interest',                reversed: 'Reconciliation, making amends, moving past conflict' },
+    { upright: 'Transition, moving on, leaving difficulty behind, calmer waters',  reversed: 'Emotional baggage, inability to move on, resistance to change' },
+    { upright: 'Deception, betrayal, cunning strategy, resourcefulness',           reversed: 'Conscience, coming clean, returning stolen goods, exposure' },
+    { upright: 'Isolation, self-imposed restriction, negative thinking',           reversed: 'Freedom, release, new perspective, escape from limitation' },
+    { upright: 'Anxiety, worry, fear, nightmares, mental anguish',                 reversed: 'Inner turmoil releasing, hopelessness, seeking help, recovery' },
+    { upright: 'Painful endings, betrayal, crisis, hitting rock bottom',           reversed: 'Recovery, regeneration, resisting an inevitable end' },
+    { upright: 'New ideas, curiosity, analytical mind, thirst for knowledge',      reversed: 'Scattered thinking, gossip, acting without thinking, hasty words' },
+    { upright: 'Ambitious, action-oriented, driven, direct communication',         reversed: 'Impulsiveness, recklessness, rushing decisions, verbal aggression' },
+    { upright: 'Independent, clear-minded, direct, honest and perceptive',         reversed: 'Coldness, cruelty, bitterness, uncharitable judgment' },
+    { upright: 'Intellectual authority, truth, high standards, clear structure',   reversed: 'Tyranny, abuse of power, manipulation, cold detachment' },
+  ],
+  Pentacles: [
+    null,
+    { upright: 'New financial opportunity, manifestation, abundance, prosperity',  reversed: 'Lost opportunity, poor financial planning, missed chance' },
+    { upright: 'Balance, adaptability, time management, juggling priorities',      reversed: 'Imbalance, disorganization, overwhelmed by demands' },
+    { upright: 'Teamwork, collaboration, skill, learning from others',             reversed: 'Lack of teamwork, disorganization, poor quality work' },
+    { upright: 'Security, control, conservatism, protecting resources',            reversed: 'Greed, materialism, hoarding, financial instability' },
+    { upright: 'Financial loss, poverty, isolation, hardship, struggle',           reversed: 'Recovery, financial improvement, finding community in hard times' },
+    { upright: 'Generosity, charity, giving and receiving, sharing wealth',        reversed: 'Debt, selfishness, strings-attached giving, power imbalance' },
+    { upright: 'Patience, long-term investment, sustainable results, assessment',  reversed: 'Impatience, lack of reward, diversion from goals, poor investment' },
+    { upright: 'Diligence, skill development, craftsmanship, hard work',           reversed: 'Lack of focus, poor quality work, perfectionism as a block' },
+    { upright: 'Luxury, self-sufficiency, financial independence, gratitude',      reversed: 'Dependency, financial setbacks, superficiality, showing off' },
+    { upright: 'Wealth, legacy, inheritance, long-term success, tradition',        reversed: 'Loss of wealth, family disputes, failed legacy, instability' },
+    { upright: 'Ambition, diligence, new financial opportunity, student mindset',  reversed: 'Lack of ambition, laziness, procrastination, poor focus' },
+    { upright: 'Hard work, reliability, routine, methodical steady progress',      reversed: 'Stubbornness, laziness, boredom, stuck in a rut' },
+    { upright: 'Nurturing, practical, financially providing, down-to-earth care',  reversed: 'Financial dependence, jealousy, smothering, neglect of self' },
+    { upright: 'Abundance, wealth, business savvy, disciplined leadership',        reversed: 'Greed, materialism, financial failure, stubbornness' },
+  ],
 };
 
 function buildStandardDeck() {
@@ -2318,8 +2490,10 @@ function buildTarotDeck() {
     for (let i = 1; i <= 14; i++) {
       const label = i === 1 ? 'Ace' : i === 11 ? 'Page' : i === 12 ? 'Knight' : i === 13 ? 'Queen' : i === 14 ? 'King' : String(i);
       const name = `${label} of ${suit}`;
-      const meaning = TAROT_MEANINGS[suit];
-      cards.push({ type: 'minor', suit, val: i, name, id: `${suit[0]}${i}`, sym, meaning });
+      const cardMeanings = MINOR_ARCANA_MEANINGS[suit][i];
+      const meaning = cardMeanings ? cardMeanings.upright : TAROT_MEANINGS[suit];
+      const reversedMeaning = cardMeanings ? cardMeanings.reversed : TAROT_MEANINGS[suit];
+      cards.push({ type: 'minor', suit, val: i, name, id: `${suit[0]}${i}`, sym, meaning, reversedMeaning });
     }
   });
   return cards;
@@ -2391,7 +2565,7 @@ function renderCardDisplay(card) {
     infoHtml = `
       <div class="current-card-name">${card.name}${card.reversed ? ' ✦ Reversed' : ''}</div>
       <div class="current-card-sub">Major Arcana · ${card.num}</div>
-      <div class="current-card-meaning">${card.reversed ? '(Reversed) ' : ''}${card.meaning}</div>`;
+      <div class="current-card-meaning">${card.reversed ? (card.reversedMeaning || card.meaning) : card.meaning}</div>`;
   } else if (card.type === 'minor') {
     const rev = card.reversed ? 'reversed' : '';
     const valStr = String(card.val).padStart(2,'0');
@@ -2400,13 +2574,15 @@ function renderCardDisplay(card) {
     infoHtml = `
       <div class="current-card-name">${card.name}${card.reversed ? ' ✦ Reversed' : ''}</div>
       <div class="current-card-sub">Minor Arcana · ${card.suit}</div>
-      <div class="current-card-meaning">${card.reversed ? '(Reversed) ' : ''}${card.meaning || ''}</div>`;
+      <div class="current-card-meaning">${card.reversed ? (card.reversedMeaning || card.meaning || '') : (card.meaning || '')}</div>`;
   }
 
   const isTarot = card.type === 'major' || card.type === 'minor';
-  const backSrc  = isTarot ? 'assets/tarot/CardBacks.jpg' : 'assets/cards_back.png';
+  const backHtml = isTarot
+    ? `<div class="css-card-back css-card-back--tarot"><div class="css-cb-frame"><span class="css-cb-center">✦</span></div></div>`
+    : `<div class="css-card-back css-card-back--standard"><div class="css-cb-frame"><span class="css-cb-center">♦</span></div></div>`;
   wrap.innerHTML = `
-    <img class="card-back-img" src="${backSrc}" alt="Card back">
+    ${backHtml}
     ${cardHtml}
     <div class="current-card-info">${infoHtml}</div>
   `;
@@ -3013,7 +3189,10 @@ function buildCustomCards() {
         if (!customizerState.tarot_minor_vals.has(i)) continue;
         const label = i === 1 ? 'Ace' : i === 11 ? 'Page' : i === 12 ? 'Knight' : i === 13 ? 'Queen' : i === 14 ? 'King' : String(i);
         const name = `${label} of ${suit}`;
-        cards.push({ type: 'minor', suit, val: i, name, id: `${suit[0]}${i}`, sym, meaning: TAROT_MEANINGS[suit] });
+        const custCardMeanings = MINOR_ARCANA_MEANINGS[suit][i];
+        const custMeaning = custCardMeanings ? custCardMeanings.upright : TAROT_MEANINGS[suit];
+        const custReversedMeaning = custCardMeanings ? custCardMeanings.reversed : TAROT_MEANINGS[suit];
+        cards.push({ type: 'minor', suit, val: i, name, id: `${suit[0]}${i}`, sym, meaning: custMeaning, reversedMeaning: custReversedMeaning });
       }
     });
   }
